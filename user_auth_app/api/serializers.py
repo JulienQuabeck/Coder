@@ -1,7 +1,9 @@
-from user_auth_app.models import UserProfile
+from user_auth_app.models import UserProfile, FileUpload
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
+from rest_framework import serializers
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
@@ -63,10 +65,26 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
     
 class UserProfileSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='userprofile.type')
+    # type = serializers.CharField()
+    user = serializers.SerializerMethodField()  # Verschachtelter Benutzer
     
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'type']
+        # fields = ['id', 'username', 'email', 'type']
+        fields = ['user', 'location', 'phone', 'description', 'working_hours', 'type', 'created_at', 'file']
 
+    def get_user(self, obj):
+        return {
+            "pk": obj.id,
+            "username": obj.username,
+            "first_name": obj.first_name,
+            "last_name": obj.last_name,
+        }
+    
+
+class FileUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileUpload
+        fields = ['file', 'uploaded_at']
+        
         
