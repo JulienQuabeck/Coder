@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
-from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer
+from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -9,6 +9,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from user_auth_app.models import UserProfile, FileUpload
+from rest_framework import serializers
 
 
 class RegistraionView(APIView):
@@ -38,21 +39,47 @@ class GetAllUsers(generics.ListCreateAPIView):
     serializer_class = UserProfileSerializer
 
 class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
-    # queryset = User.objects.all()
-    # serializer_class = UserProfileSerializer
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    # def get_object(self):
+    #     # Abrufen des spezifischen UserProfiles basierend auf der pk in der URL
+    #     user_id = self.kwargs.get('pk')
+    #     #pk = self.kwargs.get('pk')
+    #     try:
+    #         user = User.objects.get(pk=user_id)
+    #         return user.userprofile
+    #         # return UserProfile.objects.get(pk=pk)
+    #     except UserProfile.DoesNotExist:
+    #         raise serializers.ValidationError({"detail": "UserProfile not found"})
+
+    def get_object(self):
+        # Abrufen des spezifischen UserProfiles basierend auf der pk in der URL
+        user_id = self.kwargs.get('pk')  # Die User ID aus der URL holen
         try:
-            # Profil des aktuellen Nutzers abrufen
-            user_profile = request.user.userprofile
-            serializer = UserProfileSerializer(user_profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            user_profile = UserProfile.objects.get(user__id=user_id)  # UserProfile anhand der User ID suchen
+            return user_profile
         except UserProfile.DoesNotExist:
-            return Response({"detail": "UserProfile not found"}, status=status.HTTP_404_NOT_FOUND)
+            raise serializers.ValidationError({"detail": "UserProfile not found"})
+
+    def retrieve(self, request, *args, **kwargs):
+        # Hier kannst du zusätzliche Logik hinzufügen, falls nötig
+        user_profile = self.get_object()
+        serializer = self.get_serializer(user_profile)
+        return Response(serializer.data)  # Rückgabe der serialisierten Daten
+
+    # def get(self, request):
+    #     try:
+    #         # Profil des aktuellen Nutzers abrufen
+    #         user_profile = request.user.userprofile
+    #         serializer = UserProfileSerializer(user_profile)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     except UserProfile.DoesNotExist:
+    #         return Response({"detail": "UserProfile not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class LoginView(ObtainAuthToken):
-    Permission_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     def post (self, request):
         serializer = self.serializer_class(data=request.data)
