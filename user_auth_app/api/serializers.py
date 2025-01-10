@@ -117,7 +117,3 @@ class FileUploadSerializer(serializers.ModelSerializer):
         model = FileUpload
         fields = ['file', 'uploaded_at']
         
-
-
-
-        

@@ -42,9 +42,47 @@ class getBusinessUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="business").distinct()
     serializer_class = BusinessUserListSerializer
 
+class getBusinessUsersDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        try:
+            user_profile = UserProfile.objects.get(user__id=user_id)
+            return user_profile
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError({"detail": "UserProfile not found"})
+
+    def retrieve(self, request, *args, **kwargs):
+        user_profile = self.get_object()
+        serializer = self.get_serializer(user_profile)
+        return Response(serializer.data)
+
 class getCustomerUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="customer").distinct()
     serializer_class = CustomerUserListSerializer
+
+class getCustomerUsersDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        try:
+            user_profile = UserProfile.objects.get(user__id=user_id)
+            return user_profile
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError({"detail": "UserProfile not found"})
+
+    def retrieve(self, request, *args, **kwargs):
+        user_profile = self.get_object()
+        serializer = self.get_serializer(user_profile)
+        return Response(serializer.data)
 
 class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
