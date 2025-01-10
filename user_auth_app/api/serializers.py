@@ -66,12 +66,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
     
 class UserProfileSerializer(serializers.ModelSerializer):
-    # type = serializers.CharField()
     user = serializers.SerializerMethodField()  # Verschachtelter Benutzer
     
     class Meta:
         model = UserProfile
-        fields = ['user', 'location', 'phone', 'description', 'working_hours', 'type', 'created_at', 'file']
+        fields = ['user', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
 
     def get_user(self, obj):
         return {
@@ -80,9 +79,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "first_name": obj.first_name,
             "last_name": obj.last_name,
         }
+
+class BusinessUserListSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    class Meta:
+        model = UserProfile
+        fields = ['user']
+
+    def get_user(self, obj):
+        return obj
+    
+class CustomerUserListSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    class Meta:
+        model = UserProfile
+        fields = ['user']
+
+    def get_user(self, obj):
+        return obj
+    
+class UserNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['pk', 'username', 'first_name', 'last_name']
     
 class UserDetailSerializer(serializers.ModelSerializer):
-    # user = serializers.SerializerMethodField()  # Verschachtelter Benutzer
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
@@ -94,20 +115,13 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['user_id','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
 
-    # def get_user(self, obj):
-    #     return {
-    #         "pk": obj.user.id,
-    #         "username": obj.user.username,
-    #         "firstname": obj.user.first_name,
-    #         "lastname":obj.user.last_name
-    #     }
-    
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = FileUpload
         fields = ['file', 'uploaded_at']
         
+
 
 
         

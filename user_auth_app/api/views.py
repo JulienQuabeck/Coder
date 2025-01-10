@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
-from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer
+from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, CustomerUserListSerializer, UserNestedSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -38,45 +38,48 @@ class GetAllUsers(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
 
+class getBusinessUsers(generics.ListCreateAPIView):
+    queryset = UserProfile.objects.filter(type="business").distinct()
+    serializer_class = BusinessUserListSerializer
+
+    def list(self, request, *args, **kwargs):
+        business_users = UserProfile.objects.filter(type="business").distinct()
+        users = list({profile.user for profile in business_users})
+
+        user_serializer = UserNestedSerializer(users, many=True)
+
+        return Response(user_serializer.data)
+
+class getCustomerUsers(generics.ListCreateAPIView):
+    queryset = UserProfile.objects.filter(type="business").distinct()
+    serializer_class = CustomerUserListSerializer
+
+    def list(self, request, *args, **kwargs):
+        business_users = UserProfile.objects.filter(type="customer").distinct()
+        users = list({profile.user for profile in business_users})
+
+        user_serializer = UserNestedSerializer(users, many=True)
+
+        return Response(user_serializer.data)
+
 class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsAuthenticated]
 
-    # def get_object(self):
-    #     # Abrufen des spezifischen UserProfiles basierend auf der pk in der URL
-    #     user_id = self.kwargs.get('pk')
-    #     #pk = self.kwargs.get('pk')
-    #     try:
-    #         user = User.objects.get(pk=user_id)
-    #         return user.userprofile
-    #         # return UserProfile.objects.get(pk=pk)
-    #     except UserProfile.DoesNotExist:
-    #         raise serializers.ValidationError({"detail": "UserProfile not found"})
 
     def get_object(self):
-        # Abrufen des spezifischen UserProfiles basierend auf der pk in der URL
-        user_id = self.kwargs.get('pk')  # Die User ID aus der URL holen
+        user_id = self.kwargs.get('pk')
         try:
-            user_profile = UserProfile.objects.get(user__id=user_id)  # UserProfile anhand der User ID suchen
+            user_profile = UserProfile.objects.get(user__id=user_id)
             return user_profile
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError({"detail": "UserProfile not found"})
 
     def retrieve(self, request, *args, **kwargs):
-        # Hier kannst du zusätzliche Logik hinzufügen, falls nötig
         user_profile = self.get_object()
         serializer = self.get_serializer(user_profile)
-        return Response(serializer.data)  # Rückgabe der serialisierten Daten
-
-    # def get(self, request):
-    #     try:
-    #         # Profil des aktuellen Nutzers abrufen
-    #         user_profile = request.user.userprofile
-    #         serializer = UserProfileSerializer(user_profile)
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except UserProfile.DoesNotExist:
-    #         return Response({"detail": "UserProfile not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.data)
 
 class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
@@ -101,7 +104,6 @@ class LoginView(ObtainAuthToken):
             data=serializer.errors
 
         return Response(error_message, status=status.HTTP_401_UNAUTHORIZED)
-    
 
 class FileUploadView(APIView):
     def post(self, request, format=None):
