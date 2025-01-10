@@ -66,7 +66,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
     
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()  # Verschachtelter Benutzer
+    user = serializers.SerializerMethodField()
     
     class Meta:
         model = UserProfile
@@ -80,28 +80,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "last_name": obj.last_name,
         }
 
-class BusinessUserListSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    class Meta:
-        model = UserProfile
-        fields = ['user']
-
-    def get_user(self, obj):
-        return obj
-    
-class CustomerUserListSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    class Meta:
-        model = UserProfile
-        fields = ['user']
-
-    def get_user(self, obj):
-        return obj
-    
 class UserNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['pk', 'username', 'first_name', 'last_name']
+
+class BusinessUserListSerializer(serializers.ModelSerializer):
+    user = UserNestedSerializer()
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'file', 'location', 'tel', 'description', 'working_hours', 'type']
+    
+class CustomerUserListSerializer(serializers.ModelSerializer):
+    user = UserNestedSerializer()
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'file','uploaded_at', 'type']
+
+    def get_user(self, obj):
+        return obj
     
 class UserDetailSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
@@ -114,7 +111,6 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user_id','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
-
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:

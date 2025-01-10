@@ -42,25 +42,9 @@ class getBusinessUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="business").distinct()
     serializer_class = BusinessUserListSerializer
 
-    def list(self, request, *args, **kwargs):
-        business_users = UserProfile.objects.filter(type="business").distinct()
-        users = list({profile.user for profile in business_users})
-
-        user_serializer = UserNestedSerializer(users, many=True)
-
-        return Response(user_serializer.data)
-
 class getCustomerUsers(generics.ListCreateAPIView):
-    queryset = UserProfile.objects.filter(type="business").distinct()
+    queryset = UserProfile.objects.filter(type="customer").distinct()
     serializer_class = CustomerUserListSerializer
-
-    def list(self, request, *args, **kwargs):
-        business_users = UserProfile.objects.filter(type="customer").distinct()
-        users = list({profile.user for profile in business_users})
-
-        user_serializer = UserNestedSerializer(users, many=True)
-
-        return Response(user_serializer.data)
 
 class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
