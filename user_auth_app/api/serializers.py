@@ -112,16 +112,16 @@ class UserNestedSerializer(serializers.ModelSerializer):
         fields = ['pk', 'username', 'first_name', 'last_name']
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    user = UserNestedSerializer()
+    user = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.CharField(source='user.email', read_only=True)
-    # username = serializers.CharField(source='user.username', read_only=True)
-    # first_name = serializers.CharField(source='user.first_name', read_only=True)
-    # last_name = serializers.CharField(source='user.last_name', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
     authentication_classes = [TokenAuthentication] 
     
     class Meta:
         model = UserProfile
-        fields = ['user', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
+        fields = ['user','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
 
 class BusinessUserListSerializer(serializers.ModelSerializer):
     user = UserNestedSerializer()
