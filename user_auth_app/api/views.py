@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
-from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, CustomerUserListSerializer, UserNestedSerializer
+from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, BusinessUserDetailSerializer, CustomerUserListSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -12,7 +12,7 @@ from user_auth_app.models import UserProfile, FileUpload
 from rest_framework import serializers
 
 
-class RegistraionView(APIView):
+class RegistraionView(APIView):#benötigt
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -34,9 +34,65 @@ class RegistraionView(APIView):
 
         return Response(data)
     
+class LoginView(ObtainAuthToken):# benötigt
+    permission_classes = [AllowAny]
+
+    def post (self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        data = {}
+
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            data = {
+                'token': token.key,
+                'username':user.username,
+                'email': user.email,
+                'user_id': user.id
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            error_message = {"detail": ["Falsche Anmeldedaten."]}
+            data=serializer.errors
+
+        return Response(error_message, status=status.HTTP_401_UNAUTHORIZED)
+
+class FileUploadView(APIView):#benötigt
+    def post(self, request, format=None):
+        serializer = FileUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):#benötigt
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        try:
+            user_profile = UserProfile.objects.get(user__id=user_id)
+            return user_profile
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError({"detail": "UserProfile not found"})
+
+    def retrieve(self, request, *args, **kwargs):
+        user_profile = self.get_object()
+        serializer = self.get_serializer(user_profile)
+        return Response(serializer.data)
+
 class GetAllUsers(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
+
+
+
+
+
 
 class getBusinessUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="business").distinct()
@@ -44,7 +100,7 @@ class getBusinessUsers(generics.ListCreateAPIView):
 
 class getBusinessUsersDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
-    serializer_class = UserDetailSerializer
+    serializer_class = BusinessUserDetailSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -83,54 +139,3 @@ class getCustomerUsersDetail(generics.RetrieveUpdateDestroyAPIView):
         user_profile = self.get_object()
         serializer = self.get_serializer(user_profile)
         return Response(serializer.data)
-
-class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserDetailSerializer
-    permission_classes = [IsAuthenticated]
-
-
-    def get_object(self):
-        user_id = self.kwargs.get('pk')
-        try:
-            user_profile = UserProfile.objects.get(user__id=user_id)
-            return user_profile
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError({"detail": "UserProfile not found"})
-
-    def retrieve(self, request, *args, **kwargs):
-        user_profile = self.get_object()
-        serializer = self.get_serializer(user_profile)
-        return Response(serializer.data)
-
-class LoginView(ObtainAuthToken):
-    permission_classes = [AllowAny]
-
-    def post (self, request):
-        serializer = self.serializer_class(data=request.data)
-
-        data = {}
-
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            data = {
-                'token': token.key,
-                'username':user.username,
-                'email': user.email,
-                'user_id': user.id
-            }
-            return Response(data, status=status.HTTP_200_OK)
-        else:
-            error_message = {"detail": ["Falsche Anmeldedaten."]}
-            data=serializer.errors
-
-        return Response(error_message, status=status.HTTP_401_UNAUTHORIZED)
-
-class FileUploadView(APIView):
-    def post(self, request, format=None):
-        serializer = FileUploadSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
