@@ -1,7 +1,14 @@
-# from django.db import models
+from django.db import models
 # from django.contrib.auth.models import User
 
-# class Offer(models.model):
+class BaseInfo(models.Model):
+    review_count = models.IntegerField() 
+    average_rating = models.DecimalField(max_digits=2, decimal_places=1)
+    businiess_profile_count = models.IntegerField() 
+    offer_count = models.IntegerField() 
+
+
+# class Offer(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
 #     title = models.CharField(max_length=255)
 #     image = ""
