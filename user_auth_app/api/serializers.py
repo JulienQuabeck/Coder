@@ -7,7 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from django.conf import settings
 
 
-class RegistrationSerializer(serializers.ModelSerializer):#benötigt
+class RegistrationSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     password = serializers.CharField()
     repeated_password = serializers.CharField(write_only=True)
@@ -66,23 +66,12 @@ class RegistrationSerializer(serializers.ModelSerializer):#benötigt
         UserProfile.objects.create(user=account, type=self.validated_data['type'])
         return account
 
-class FileUploadSerializer(serializers.ModelSerializer):#benötigt
-    # file = serializers.SerializerMethodField()
-
-    # class Meta:
-    #     model = FileUpload
-    #     fields = ['file', 'uploaded_at']
-
+class FileUploadSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
 
     class Meta:
         model = FileUpload
         fields = ['file', 'uploaded_at']
-
-    def get_file(self, obj):
-        if obj.file:
-            return settings.MEDIA_URL + obj.file.name
-        return None
 
 class UserProfileSerializer(serializers.ModelSerializer):#benötigt
     user = serializers.SerializerMethodField()
@@ -113,9 +102,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
         fields = ['user','username','first_name','last_name','file','location', 'tel', 'description', 'working_hours', 'type','email', 'created_at']
 
     def get_file(self, obj):
-        # Zugriff auf das file-Feld des UserProfile-Objekts
-        if obj.file:  # Überprüfen, ob das file-Feld existiert
-            return settings.MEDIA_URL + obj.file.name  # Relativer Pfad der Datei
+        if obj.file:
+            return settings.MEDIA_URL + obj.file.name
         return None
 
 

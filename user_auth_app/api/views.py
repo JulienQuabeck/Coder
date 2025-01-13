@@ -12,7 +12,7 @@ from user_auth_app.models import UserProfile, FileUpload
 from rest_framework import serializers
 
 
-class RegistraionView(APIView):#benötigt
+class RegistraionView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -34,7 +34,7 @@ class RegistraionView(APIView):#benötigt
 
         return Response(data)
     
-class LoginView(ObtainAuthToken):# benötigt
+class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
 
     def post (self, request):
@@ -58,7 +58,7 @@ class LoginView(ObtainAuthToken):# benötigt
 
         return Response(error_message, status=status.HTTP_401_UNAUTHORIZED)
 
-class FileUploadView(APIView):#benötigt
+class FileUploadView(APIView):
     def post(self, request, format=None):
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
@@ -72,7 +72,7 @@ class FileUploadView(APIView):#benötigt
         print(f"DEBUG API Response: {serializer.data}")
         return Response(serializer.data)
 
-class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):#benötigt
+class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsAuthenticated]
@@ -90,6 +90,21 @@ class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):#benötigt
         user_profile = self.get_object()
         serializer = self.get_serializer(user_profile)
         return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            user = instance.user
+            if 'first_name' in request.data:
+                user.first_name = request.data['first_name']
+            if 'last_name' in request.data:
+                user.last_name = request.data['last_name']
+            user.save()
+            
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
 
 class GetAllUsers(generics.ListCreateAPIView):
     queryset = User.objects.all()
