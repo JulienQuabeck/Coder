@@ -73,7 +73,7 @@ class FileUploadSerializer(serializers.ModelSerializer):
         model = FileUpload
         fields = ['file', 'uploaded_at']
 
-class UserProfileSerializer(serializers.ModelSerializer):#benötigt
+class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     
     class Meta:
@@ -106,47 +106,35 @@ class UserDetailSerializer(serializers.ModelSerializer):
             return settings.MEDIA_URL + obj.file.name
         return None
 
-
-
-
-
-
-
-
-
 class UserNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['pk', 'username', 'first_name', 'last_name']
 
-# class UserDetailSerializer(serializers.ModelSerializer):
-#     user = serializers.IntegerField(source='user.id', read_only=True)
-#     email = serializers.CharField(source='user.email', read_only=True)
-#     username = serializers.CharField(source='user.username', read_only=True)
-#     first_name = serializers.CharField(source='user.first_name', read_only=True)
-#     last_name = serializers.CharField(source='user.last_name', read_only=True)
-#     authentication_classes = [TokenAuthentication] 
-    
-#     class Meta:
-#         model = UserProfile
-#         fields = ['user','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
-
 class BusinessUserListSerializer(serializers.ModelSerializer):
     user = UserNestedSerializer()
+    file = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = ['user', 'file', 'location', 'tel', 'description', 'working_hours', 'type']
-    
+
+    def get_file(self, obj):
+        if obj.file:
+            return settings.MEDIA_URL + obj.file.name
+        return None
+
 class CustomerUserListSerializer(serializers.ModelSerializer):
     user = UserNestedSerializer()
+    file = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = ['user', 'file','uploaded_at', 'type']
 
-    def get_user(self, obj):
-        return obj
+    def get_file(self, obj):
+        if obj.file:
+            return settings.MEDIA_URL + obj.file.name
+        return None
     
-class BusinessUserDetailSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)

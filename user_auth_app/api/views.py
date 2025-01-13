@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
-from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, BusinessUserDetailSerializer, CustomerUserListSerializer
+from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, CustomerUserListSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -110,53 +110,10 @@ class GetAllUsers(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
 
-
-
-
-
-
 class getBusinessUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="business").distinct()
     serializer_class = BusinessUserListSerializer
 
-class getBusinessUsersDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = BusinessUserDetailSerializer
-    permission_classes = [IsAuthenticated]
-
-
-    def get_object(self):
-        user_id = self.kwargs.get('pk')
-        try:
-            user_profile = UserProfile.objects.get(user__id=user_id)
-            return user_profile
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError({"detail": "UserProfile not found"})
-
-    def retrieve(self, request, *args, **kwargs):
-        user_profile = self.get_object()
-        serializer = self.get_serializer(user_profile)
-        return Response(serializer.data)
-
 class getCustomerUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="customer").distinct()
     serializer_class = CustomerUserListSerializer
-
-class getCustomerUsersDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserDetailSerializer
-    permission_classes = [IsAuthenticated]
-
-
-    def get_object(self):
-        user_id = self.kwargs.get('pk')
-        try:
-            user_profile = UserProfile.objects.get(user__id=user_id)
-            return user_profile
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError({"detail": "UserProfile not found"})
-
-    def retrieve(self, request, *args, **kwargs):
-        user_profile = self.get_object()
-        serializer = self.get_serializer(user_profile)
-        return Response(serializer.data)
