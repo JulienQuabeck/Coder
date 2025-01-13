@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 import re
 from rest_framework import serializers
 from rest_framework.authentication import TokenAuthentication
+from django.conf import settings
 
 
 class RegistrationSerializer(serializers.ModelSerializer):#benötigt
@@ -66,9 +67,22 @@ class RegistrationSerializer(serializers.ModelSerializer):#benötigt
         return account
 
 class FileUploadSerializer(serializers.ModelSerializer):#benötigt
+    # file = serializers.SerializerMethodField()
+
+    # class Meta:
+    #     model = FileUpload
+    #     fields = ['file', 'uploaded_at']
+
+    file = serializers.SerializerMethodField()
+
     class Meta:
         model = FileUpload
         fields = ['file', 'uploaded_at']
+
+    def get_file(self, obj):
+        if obj.file:
+            return settings.MEDIA_URL + obj.file.name
+        return None
 
 class UserProfileSerializer(serializers.ModelSerializer):#benötigt
     user = serializers.SerializerMethodField()
@@ -91,12 +105,18 @@ class UserDetailSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     email = serializers.CharField(source='user.email', read_only=True)
+    file = serializers.SerializerMethodField()
     authentication_classes = [TokenAuthentication] 
     
     class Meta:
         model = UserProfile
         fields = ['user','username','first_name','last_name','file','location', 'tel', 'description', 'working_hours', 'type','email', 'created_at']
 
+    def get_file(self, obj):
+        # Zugriff auf das file-Feld des UserProfile-Objekts
+        if obj.file:  # Überprüfen, ob das file-Feld existiert
+            return settings.MEDIA_URL + obj.file.name  # Relativer Pfad der Datei
+        return None
 
 
 
@@ -111,17 +131,17 @@ class UserNestedSerializer(serializers.ModelSerializer):
         model = User
         fields = ['pk', 'username', 'first_name', 'last_name']
 
-class UserDetailSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(source='user.id', read_only=True)
-    email = serializers.CharField(source='user.email', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
-    first_name = serializers.CharField(source='user.first_name', read_only=True)
-    last_name = serializers.CharField(source='user.last_name', read_only=True)
-    authentication_classes = [TokenAuthentication] 
+# class UserDetailSerializer(serializers.ModelSerializer):
+#     user = serializers.IntegerField(source='user.id', read_only=True)
+#     email = serializers.CharField(source='user.email', read_only=True)
+#     username = serializers.CharField(source='user.username', read_only=True)
+#     first_name = serializers.CharField(source='user.first_name', read_only=True)
+#     last_name = serializers.CharField(source='user.last_name', read_only=True)
+#     authentication_classes = [TokenAuthentication] 
     
-    class Meta:
-        model = UserProfile
-        fields = ['user','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
+#     class Meta:
+#         model = UserProfile
+#         fields = ['user','username','first_name','last_name', 'email', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
 
 class BusinessUserListSerializer(serializers.ModelSerializer):
     user = UserNestedSerializer()

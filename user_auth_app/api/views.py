@@ -65,6 +65,12 @@ class FileUploadView(APIView):#benötigt
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, *args, **kwargs):
+        instance = FileUpload.objects.first()  # Beispiel: erstes Objekt prüfen
+        serializer = FileUploadSerializer(instance)
+        print(f"DEBUG API Response: {serializer.data}")
+        return Response(serializer.data)
 
 class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):#benötigt
     queryset = User.objects.all()
