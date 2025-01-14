@@ -67,7 +67,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
 class FileUploadSerializer(serializers.ModelSerializer):
-    file = serializers.SerializerMethodField()
+    # file = serializers.SerializerMethodField()
     
     class Meta:
         model = FileUpload

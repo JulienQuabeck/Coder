@@ -12,4 +12,3 @@ urlpatterns = [
     path('profiles/business/', getBusinessUsers.as_view(), name='GetBusinessUser'),
     path('profiles/customer/', getCustomerUsers.as_view(), name='GetCustomerUser'),
 ]
-
