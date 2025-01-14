@@ -67,7 +67,7 @@ class FileUploadView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request, *args, **kwargs):
-        instance = FileUpload.objects.first()  # Beispiel: erstes Objekt prüfen
+        instance = FileUpload.objects.first()
         serializer = FileUploadSerializer(instance)
         print(f"DEBUG API Response: {serializer.data}")
         return Response(serializer.data)
