@@ -1,6 +1,8 @@
 from django.urls import path
+from offers_app.api.views import offersList, OfferDetailView
 
 
 urlpatterns = [
-    #path('registration/', RegistraionView.as_view(), name='registraion'),
+    path('offers/', offersList.as_view(), name='offer-list'),
+    path('offers/<int:id>/', OfferDetailView.as_view(), name='offer-detail'),
 ]

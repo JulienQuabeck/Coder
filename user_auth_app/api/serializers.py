@@ -2,7 +2,6 @@ from user_auth_app.models import UserProfile, FileUpload
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
-from rest_framework import serializers
 from rest_framework.authentication import TokenAuthentication
 from django.conf import settings
 
