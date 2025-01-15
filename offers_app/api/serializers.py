@@ -10,14 +10,11 @@ class UserNestedSerializer(serializers.ModelSerializer):
 
 class OfferDetailSerializer(serializers.ModelSerializer):
     features = serializers.SerializerMethodField()
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
-
-    def get_price(self, obj):
-        return f"{obj.price:.2f}"
     
     def get_features(self, obj):
         return [feature.name for feature in obj.features.all()]
@@ -30,10 +27,12 @@ class OfferDetailMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'url']
 
 class OfferSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     user_details = serializers.SerializerMethodField()
     details = OfferDetailMinimalSerializer(many=True)
     image = serializers.SerializerMethodField()
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    min_delivery_time = serializers.IntegerField(required=False)
 
     class Meta:
         model = Offer
@@ -55,7 +54,7 @@ class OfferSerializer(serializers.ModelSerializer):
                 "username": user.username,
             }
         return {} 
-
+    
 class FeaturesSerializer(serializers.ModelSerializer):
     class Meta:
         model: Feature
