@@ -72,7 +72,7 @@ class FileUploadView(APIView):
         print(f"DEBUG API Response: {serializer.data}")
         return Response(serializer.data)
 
-class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
+class RetrievUpdateDestroyDetailUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsAuthenticated]
@@ -100,20 +100,22 @@ class GetDetailUser(generics.RetrieveUpdateDestroyAPIView):
                 user.first_name = request.data['first_name']
             if 'last_name' in request.data:
                 user.last_name = request.data['last_name']
+            if 'file' in request.data:
+                instance.file = request.data['file']
             user.save()
             
             serializer.save()
             return Response(serializer.data, status=200)
         return Response(serializer.errors, status=400)
 
-class GetAllUsers(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
+# class ListAllUsers(generics.ListCreateAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserProfileSerializer
 
-class getBusinessUsers(generics.ListCreateAPIView):
+class ListBusinessUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="business").distinct()
     serializer_class = BusinessUserListSerializer
 
-class getCustomerUsers(generics.ListCreateAPIView):
+class ListCustomerUsers(generics.ListCreateAPIView):
     queryset = UserProfile.objects.filter(type="customer").distinct()
     serializer_class = CustomerUserListSerializer

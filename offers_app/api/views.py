@@ -1,8 +1,9 @@
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from offers_app.models import Offer
-from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer
+from offers_app.models import Offer, OfferDetail, Feature
+from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer
 from rest_framework import generics
+
 
 
 class offersList(generics.ListCreateAPIView):
@@ -12,8 +13,11 @@ class offersList(generics.ListCreateAPIView):
     serializer_class = OfferSerializer
 
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
-    queryset = Offer.objects.all()
+    queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
-    lookup_field = 'id'
+
+class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Feature
+    serializer_class = FeaturesSerializer

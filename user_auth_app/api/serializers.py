@@ -80,11 +80,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ['user', 'location', 'tel', 'description', 'working_hours', 'type', 'created_at', 'file']
 
     def get_user(self, obj):
+        print(obj)
         return {
             "pk": obj.id,
-            "username": obj.username,
-            "first_name": obj.first_name,
-            "last_name": obj.last_name,
+            "username": obj.user.username,
+            "first_name": obj.user.first_name,
+            "last_name": obj.user.last_name,
         }
 
 class UserDetailSerializer(serializers.ModelSerializer):
