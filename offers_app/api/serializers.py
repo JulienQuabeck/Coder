@@ -64,15 +64,22 @@ class OfferSerializer(serializers.ModelSerializer):
         validated_data['user'] = user_profile
 
         details_data = validated_data.pop('details', [])
+
         offer = Offer.objects.create(**validated_data)
+        # offer.min_price = 0
+        # offer.min_delivery_time = 0
 
         detailArray = []
         for detail_data in details_data:
             detail = OfferDetail.objects.create(**detail_data)
-            detailArray.add(detail)
+            detailArray.append(detail)
         
-        offer.min_price = detailArray.aggregate(models.Min('price'))['min_price'] or 0  
-        offer.min_delivery_time = detailArray.aggregate(models.Min('delivery_time_in_days'))['min_delivery_time'] or 0 
+        if detailArray:
+            offer.min_price = detailArray.aggregate(models.Min('price'))['price__min'] or 0
+            offer.min_delivery_time = detailArray.aggregate(models.Min('delivery_time_in_days'))['delivery_time_in_days__min'] or 0
+        else:
+            offer.min_price = 0
+            offer.min_delivery_time = 0
 
         offer.save()
         return offer
