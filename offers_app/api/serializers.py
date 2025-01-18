@@ -19,8 +19,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     
     def get_features(self, obj):
         return [feature.name for feature in obj.features.all()]
-    
-    
+       
 class OfferDetailMinimalSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='offerDetail')
 
@@ -40,10 +39,8 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = [
             'id', 'user', 'title', 'image', 'description',
-            'created_at', 'updated_at', 'details',
-            'min_price', 'min_delivery_time', 'user_details'
+            'created_at', 'updated_at', 'details', 'min_price','min_delivery_time','user_details',
         ]
-        read_only_fields = ['min_price', 'min_delivery_time', 'user', 'user_details']
 
     def get_user_details(self, obj):
         user = obj.user.user 
@@ -58,30 +55,41 @@ class OfferSerializer(serializers.ModelSerializer):
             return obj.image.url
         return None
 
+class OfferCreateUpdateSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    details = OfferDetailMinimalSerializer(many=True)
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description',
+            'created_at', 'updated_at', 'details',
+        ]
+
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
+    
     def create(self, validated_data):
+        # Extrahiere die Details-Daten
+        details_data = validated_data.pop('details', [])
+        # Hol den Benutzer aus der Anfrage
         user = self.context['request'].user
         user_profile = UserProfile.objects.get(user=user)
         validated_data['user'] = user_profile
 
-        details_data = validated_data.pop('details', [])
-
+        # Erstelle das Hauptangebot
         offer = Offer.objects.create(**validated_data)
-        # offer.min_price = 0
-        # offer.min_delivery_time = 0
 
-        detailArray = []
+        # Erstelle die OfferDetail-Instanzen und füge sie dem Angebot hinzu
         for detail_data in details_data:
-            detail = OfferDetail.objects.create(**detail_data)
-            detailArray.append(detail)
-        
-        if detailArray:
-            offer.min_price = detailArray.aggregate(models.Min('price'))['price__min'] or 0
-            offer.min_delivery_time = detailArray.aggregate(models.Min('delivery_time_in_days'))['delivery_time_in_days__min'] or 0
-        else:
-            offer.min_price = 0
-            offer.min_delivery_time = 0
+            features_data = detail_data.pop('features', [])
+            offer_detail = OfferDetail.objects.create(**detail_data)
+            offer_detail.features.set(Feature.objects.filter(name__in=features_data))
+            offer.details.add(offer_detail)
 
-        offer.save()
         return offer
 
 class FeaturesSerializer(serializers.ModelSerializer):
