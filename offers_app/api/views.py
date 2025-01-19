@@ -1,7 +1,8 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
+from user_auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail, Feature
-from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer
+from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, SingleOfferSerializer
 from rest_framework import generics, filters
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Min
@@ -34,7 +35,10 @@ class offersList(generics.ListCreateAPIView):
         queryset = queryset.annotate(
             user_first_name=F('user__user__first_name'),
             user_last_name=F('user__user__last_name'),
-            user_username=F('user__user__username')
+            user_username=F('user__user__username'),
+        #     queryset = queryset.annotate(
+        #     user=F('user__id')
+        #     )
         )
         return queryset
 
@@ -47,3 +51,7 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
 class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Feature
     serializer_class = FeaturesSerializer
+
+class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Offer.objects.all()
+    serializer_class = OfferSerializer

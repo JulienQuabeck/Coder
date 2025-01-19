@@ -42,6 +42,12 @@ class OfferSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'details', 'min_price','min_delivery_time','user_details',
         ]
 
+    def get_user(self, obj):
+        user = obj.user.user
+        return {
+            "user": user.pk,
+        }
+
     def get_user_details(self, obj):
         user = obj.user.user 
         return {
@@ -56,6 +62,47 @@ class OfferSerializer(serializers.ModelSerializer):
         return None
 
 class OfferCreateUpdateSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    details = OfferDetailMinimalSerializer(many=True)
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description',
+            'created_at', 'updated_at', 'details',
+        ]
+
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
+    
+    def create(self, validated_data):
+
+        details_data = validated_data.pop('details', [])
+
+        user = self.context['request'].user
+        user_profile = UserProfile.objects.get(user=user)
+    
+        validated_data['user'] = user_profile
+
+        offer = Offer.objects.create(**validated_data)
+
+        for detail_data in details_data:
+            features_data = detail_data.pop('features', [])
+            offer_detail = OfferDetail.objects.create(**detail_data)
+            offer_detail.features.set(Feature.objects.filter(name__in=features_data))
+            offer.details.add(offer_detail)
+
+        return offer
+
+class FeaturesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model: Feature
+        fields = ['id', 'name']
+
+class SingleOfferSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     details = OfferDetailMinimalSerializer(many=True)
     image = serializers.SerializerMethodField()
@@ -91,8 +138,4 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
             offer.details.add(offer_detail)
 
         return offer
-
-class FeaturesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model: Feature
-        fields = ['id', 'name']
+       
