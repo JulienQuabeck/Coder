@@ -36,9 +36,6 @@ class offersList(generics.ListCreateAPIView):
             user_first_name=F('user__user__first_name'),
             user_last_name=F('user__user__last_name'),
             user_username=F('user__user__username'),
-        #     queryset = queryset.annotate(
-        #     user=F('user__id')
-        #     )
         )
         return queryset
 
@@ -54,4 +51,4 @@ class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
 
 class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
-    serializer_class = OfferSerializer
+    serializer_class = SingleOfferSerializer
