@@ -6,15 +6,15 @@ class Feature(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.id, self.name
+        return self.name
 
 class OfferDetail(models.Model):
 
-    types_title_Choices = [
-        ('Basic Design', 'Basic Design'),
-        ('Standard Design', 'Standard Design'),
-        ('Premium Design', 'Premium Design'),
-    ]
+    # types_title_Choices = [
+    #     ('Basic Design', 'Basic Design'),
+    #     ('Standard Design', 'Standard Design'),
+    #     ('Premium Design', 'Premium Design'),
+    # ]
 
     types_Choices = [
         ('basic', 'basic'),
@@ -22,7 +22,7 @@ class OfferDetail(models.Model):
         ('premium', 'premium'),
     ]
 
-    title = models.CharField(max_length=255, default='Basic Design', choices=types_title_Choices)
+    title = models.CharField(max_length=255, default='Basic Design')
     revisions = models.IntegerField(default=0) 
     delivery_time_in_days = models.IntegerField(default=0) 
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)

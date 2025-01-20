@@ -45,6 +45,10 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
 
+class DisplayFeatures(generics.ListCreateAPIView):
+    queryset = Feature.objects.all()
+    serializer_class = FeaturesSerializer
+
 class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Feature
     serializer_class = FeaturesSerializer
