@@ -2,7 +2,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from user_auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail, Feature
-from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, SingleOfferSerializer
+from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
 from rest_framework import generics, filters
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Min
@@ -21,7 +21,6 @@ class offersList(generics.ListCreateAPIView):
     ordering = ['min_price']
 
     queryset = Offer.objects.all()
-    #serializer_class = OfferSerializer
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH']:
@@ -55,4 +54,8 @@ class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
 
 class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
-    serializer_class = SingleOfferSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PATCH']:
+            return PostSingleOfferSerializer
+        return GetSingleOfferSerializer

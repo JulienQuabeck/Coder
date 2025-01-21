@@ -25,7 +25,6 @@ class OfferDetailMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetail
-        # fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type', 'url']
         fields = ['id', 'url']
 
 class OfferDetailMaximalSerializer(serializers.ModelSerializer):
@@ -36,11 +35,19 @@ class OfferDetailMaximalSerializer(serializers.ModelSerializer):
         fields = ['title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
 
     def get_features(self, obj):
+        return [feature.name for feature in obj.features.all()]
+    
+class OfferDetailMaximalWithIdSerializer(serializers.ModelSerializer):
+    features = serializers.SlugRelatedField(slug_field='name', queryset=Feature.objects.all(), many=True)
+
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+
+    def get_features(self, obj):
         return obj.name
 
-
 class OfferSerializer(serializers.ModelSerializer):
-    # user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     user = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
     details = OfferDetailMinimalSerializer(many=True)
@@ -54,12 +61,6 @@ class OfferSerializer(serializers.ModelSerializer):
             'id', 'user', 'title', 'image', 'description',
             'created_at', 'updated_at', 'details', 'min_price','min_delivery_time','user_details',
         ]
-
-    # def get_user(self, obj):
-    #     user = obj.user.user
-    #     return {
-    #         "user": user.pk,
-    #     }
 
     def get_user(self, obj):
         return obj.user.user_id
@@ -79,7 +80,6 @@ class OfferSerializer(serializers.ModelSerializer):
 
 class OfferCreateUpdateSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
-    # user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     details = OfferDetailMaximalSerializer(many=True)
     image = serializers.SerializerMethodField()
 
@@ -101,17 +101,13 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         details_data = validated_data.pop('details', [])
         
-        # Setze den Benutzer
-        validated_data['user'] = self.context['request'].user.userprofile  # Verknüpfe das UserProfile mit dem Angebot
+        validated_data['user'] = self.context['request'].user.userprofile 
 
-        # Erstelle das Hauptangebot
         offer = Offer.objects.create(**validated_data)
 
-        # Erstelle und füge die Details hinzu
         for detail_data in details_data:
-            features_data = detail_data.pop('features', [])  # Hol die Feature-Namen
+            features_data = detail_data.pop('features', [])
 
-            # Erstelle das Detail mit den übergebenen Daten
             offer_detail = OfferDetail.objects.create(
                 title=detail_data.get('title'),
                 revisions=detail_data.get('revisions'),
@@ -120,9 +116,8 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
                 offer_type=detail_data.get('offer_type'),
             )
 
-            # Features hinzufügen (Erstelle die Feature-Objekte basierend auf den Namen)
             feature_objects = Feature.objects.filter(name__in=features_data)
-            if len(feature_objects) != len(features_data):  # Überprüfen, ob alle Features gültig sind
+            if len(feature_objects) != len(features_data):
                 missing_features = set(features_data) - set(feature_objects.values_list('name', flat=True))
                 raise serializers.ValidationError(
                     {"features": f"Ungültige Features gefunden: {', '.join(missing_features)}"}
@@ -130,52 +125,19 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
             offer_detail.features.set(feature_objects)
             offer_detail.save()
 
-            # Füge das Detail zum Angebot hinzu
             offer.details.add(offer_detail)
 
         return offer
-    
-    # def create(self, validated_data):
-    #     details_data = validated_data.pop('details', [])
-        
-    #     # Setze den Benutzer
-    #     validated_data['user'] = self.context['request'].user.userprofile  # Verknüpfe das UserProfile mit dem Angebot
-
-    #     # Hauptangebot erstellen
-    #     offer = Offer.objects.create(**validated_data)
-
-    #     # Details hinzufügen
-    #     for detail_data in details_data:
-    #         features_data = detail_data.pop('features', [])  # Erwartet nun eine Liste von Feature-Namen (Strings)
-
-    #         # Detail erstellen
-    #         offer_detail = OfferDetail.objects.create(
-    #             title=detail_data.get('title'),
-    #             revisions=detail_data.get('revisions'),
-    #             delivery_time_in_days=detail_data.get('delivery_time_in_days'),
-    #             price=detail_data.get('price'),
-    #             offer_type=detail_data.get('offer_type'),
-    #         )
-
-    #         # Features zuweisen (Feature-Namen werden automatisch in Feature-Objekte umgewandelt)
-    #         offer_detail.features.set(features_data)
-    #         offer_detail.save()
-
-    #         # Detail zum Angebot hinzufügen
-    #         offer.details.add(offer_detail)
-
-    #     return offer
 
 class FeaturesSerializer(serializers.ModelSerializer):
     class Meta:
         model: Feature
         fields = ['name']
 
-class SingleOfferSerializer(serializers.ModelSerializer):
-
+class GetSingleOfferSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
-    details = OfferDetailMinimalSerializer(many=True)
-    image = serializers.SerializerMethodField()
+    details = OfferDetailMaximalWithIdSerializer(many=True)
+    image = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = Offer
@@ -184,10 +146,16 @@ class SingleOfferSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'details',
         ]
 
-    def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return None
-    
     def get_user(self, obj):
         return obj.user.user_id
+    
+class PostSingleOfferSerializer(serializers.ModelSerializer):
+    details = OfferDetailMaximalSerializer(many=True) # vllt einen anderen Serializer hierfür verwenden?!
+    image = serializers.FileField(required=False, allow_null=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description',
+            'created_at', 'updated_at', 'details',
+        ]

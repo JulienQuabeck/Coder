@@ -10,12 +10,6 @@ class Feature(models.Model):
 
 class OfferDetail(models.Model):
 
-    # types_title_Choices = [
-    #     ('Basic Design', 'Basic Design'),
-    #     ('Standard Design', 'Standard Design'),
-    #     ('Premium Design', 'Premium Design'),
-    # ]
-
     types_Choices = [
         ('basic', 'basic'),
         ('standard', 'standard'),
@@ -35,6 +29,6 @@ class Offer(models.Model):
     image = models.FileField(upload_to='offers/', null=True, blank=True)
     description = models.TextField(max_length=3000)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     details = models.ManyToManyField(OfferDetail, related_name='offers')
     
