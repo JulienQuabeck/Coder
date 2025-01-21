@@ -10,7 +10,7 @@ class UserNestedSerializer(serializers.ModelSerializer):
         fields = ['user_id']
 
 class OfferDetailSerializer(serializers.ModelSerializer):
-    features = serializers.SerializerMethodField()
+    features = serializers.JSONField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
@@ -28,8 +28,8 @@ class OfferDetailMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'url']
 
 class OfferDetailMaximalSerializer(serializers.ModelSerializer):
-    features = serializers.SlugRelatedField(slug_field='name', queryset=Feature.objects.all(), many=True)
-
+    # features = serializers.SlugRelatedField(slug_field='name', queryset=Feature.objects.all(), many=True)
+    features = serializers.JSONField()
     class Meta:
         model = OfferDetail
         fields = ['title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
@@ -38,14 +38,15 @@ class OfferDetailMaximalSerializer(serializers.ModelSerializer):
         return [feature.name for feature in obj.features.all()]
     
 class OfferDetailMaximalWithIdSerializer(serializers.ModelSerializer):
-    features = serializers.SlugRelatedField(slug_field='name', queryset=Feature.objects.all(), many=True)
+    
+    features = serializers.JSONField()
 
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
 
     def get_features(self, obj):
-        return obj.name
+        return [feature.name for feature in obj.features.all()]
 
 class OfferSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
@@ -100,13 +101,13 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         details_data = validated_data.pop('details', [])
-        
-        validated_data['user'] = self.context['request'].user.userprofile 
+        validated_data['user'] = self.context['request'].user.userprofile
 
         offer = Offer.objects.create(**validated_data)
 
         for detail_data in details_data:
-            features_data = detail_data.pop('features', [])
+            # Features direkt aus dem detail_data nehmen.
+            features_data = detail_data.pop('features', {})
 
             offer_detail = OfferDetail.objects.create(
                 title=detail_data.get('title'),
@@ -114,20 +115,43 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
                 delivery_time_in_days=detail_data.get('delivery_time_in_days'),
                 price=detail_data.get('price'),
                 offer_type=detail_data.get('offer_type'),
+                features=features_data,  # JSON wird direkt gesetzt.
             )
-
-            feature_objects = Feature.objects.filter(name__in=features_data)
-            if len(feature_objects) != len(features_data):
-                missing_features = set(features_data) - set(feature_objects.values_list('name', flat=True))
-                raise serializers.ValidationError(
-                    {"features": f"Ungültige Features gefunden: {', '.join(missing_features)}"}
-                )
-            offer_detail.features.set(feature_objects)
-            offer_detail.save()
 
             offer.details.add(offer_detail)
 
         return offer
+    
+    # def create(self, validated_data):
+    #     details_data = validated_data.pop('details', [])
+        
+    #     validated_data['user'] = self.context['request'].user.userprofile 
+
+    #     offer = Offer.objects.create(**validated_data)
+
+    #     for detail_data in details_data:
+    #         features_data = detail_data.pop('features', [])
+
+    #         offer_detail = OfferDetail.objects.create(
+    #             title=detail_data.get('title'),
+    #             revisions=detail_data.get('revisions'),
+    #             delivery_time_in_days=detail_data.get('delivery_time_in_days'),
+    #             price=detail_data.get('price'),
+    #             offer_type=detail_data.get('offer_type'),
+    #         )
+
+    #         feature_objects = Feature.objects.filter(name__in=features_data)
+    #         if len(feature_objects) != len(features_data):
+    #             missing_features = set(features_data) - set(feature_objects.values_list('name', flat=True))
+    #             raise serializers.ValidationError(
+    #                 {"features": f"Ungültige Features gefunden: {', '.join(missing_features)}"}
+    #             )
+    #         offer_detail.features.set(feature_objects)
+    #         offer_detail.save()
+
+    #         offer.details.add(offer_detail)
+
+    #     return offer
 
 class FeaturesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -150,7 +174,7 @@ class GetSingleOfferSerializer(serializers.ModelSerializer):
         return obj.user.user_id
     
 class PostSingleOfferSerializer(serializers.ModelSerializer):
-    details = OfferDetailMaximalSerializer(many=True) # vllt einen anderen Serializer hierfür verwenden?!
+    details = OfferDetailMaximalSerializer(many=True)
     image = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
@@ -159,3 +183,32 @@ class PostSingleOfferSerializer(serializers.ModelSerializer):
             'id', 'user', 'title', 'image', 'description',
             'created_at', 'updated_at', 'details',
         ]
+
+    def update(self, instance, validated_data):
+        # `details` aus den validierten Daten extrahieren
+        details_data = validated_data.pop('details', [])
+        
+        # Update der Haupt-Instanz (`Offer`)
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        if 'image' in validated_data:
+            instance.image = validated_data.get('image', instance.image)
+        instance.save()
+
+        # Bestehende OfferDetail-Objekte aktualisieren oder neue erstellen
+        for detail_data in details_data:
+            detail_id = detail_data.get('id')  # Prüfe, ob das Detail bereits existiert
+            if detail_id:
+                # Existierendes OfferDetail aktualisieren
+                detail_instance = OfferDetail.objects.get(id=detail_id)
+                detail_instance.title = detail_data.get('title', detail_instance.title)
+                detail_instance.revisions = detail_data.get('revisions', detail_instance.revisions)
+                detail_instance.delivery_time_in_days = detail_data.get(
+                    'delivery_time_in_days', detail_instance.delivery_time_in_days
+                )
+                detail_instance.price = detail_data.get('price', detail_instance.price)
+                detail_instance.features = detail_data.get('features', detail_instance.features)
+                detail_instance.offer_type = detail_data.get('offer_type', detail_instance.offer_type)
+                detail_instance.save()
+
+        return instance

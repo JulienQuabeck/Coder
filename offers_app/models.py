@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from user_auth_app.models import UserProfile
+import json
 
 class Feature(models.Model):
     name = models.CharField(max_length=100)
@@ -10,6 +11,18 @@ class Feature(models.Model):
 
 class OfferDetail(models.Model):
 
+    # types_Choices = [
+    #     ('basic', 'basic'),
+    #     ('standard', 'standard'),
+    #     ('premium', 'premium'),
+    # ]
+
+    # title = models.CharField(max_length=255, default='Basic Design')
+    # revisions = models.IntegerField(default=0) 
+    # delivery_time_in_days = models.IntegerField(default=0) 
+    # price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # features =  models.ManyToManyField(Feature, related_name="offers")
+    # offer_type = models.CharField(max_length=255, choices=types_Choices, default='basic')
     types_Choices = [
         ('basic', 'basic'),
         ('standard', 'standard'),
@@ -20,7 +33,7 @@ class OfferDetail(models.Model):
     revisions = models.IntegerField(default=0) 
     delivery_time_in_days = models.IntegerField(default=0) 
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    features =  models.ManyToManyField(Feature, related_name="offers")
+    features =   models.JSONField(default=dict, blank=True)
     offer_type = models.CharField(max_length=255, choices=types_Choices, default='basic')
 
 class Offer(models.Model):
