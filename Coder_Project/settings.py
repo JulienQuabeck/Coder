@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'user_auth_app',
     'market_app',
     'offers_app',
+    'orders_app',
+    'additionalfunctions',
 ]
 
 MIDDLEWARE = [
