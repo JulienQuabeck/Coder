@@ -106,7 +106,6 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
         offer = Offer.objects.create(**validated_data)
 
         for detail_data in details_data:
-            # Features direkt aus dem detail_data nehmen.
             features_data = detail_data.pop('features', {})
 
             offer_detail = OfferDetail.objects.create(
@@ -115,43 +114,12 @@ class OfferCreateUpdateSerializer(serializers.ModelSerializer):
                 delivery_time_in_days=detail_data.get('delivery_time_in_days'),
                 price=detail_data.get('price'),
                 offer_type=detail_data.get('offer_type'),
-                features=features_data,  # JSON wird direkt gesetzt.
+                features=features_data,
             )
 
             offer.details.add(offer_detail)
 
         return offer
-    
-    # def create(self, validated_data):
-    #     details_data = validated_data.pop('details', [])
-        
-    #     validated_data['user'] = self.context['request'].user.userprofile 
-
-    #     offer = Offer.objects.create(**validated_data)
-
-    #     for detail_data in details_data:
-    #         features_data = detail_data.pop('features', [])
-
-    #         offer_detail = OfferDetail.objects.create(
-    #             title=detail_data.get('title'),
-    #             revisions=detail_data.get('revisions'),
-    #             delivery_time_in_days=detail_data.get('delivery_time_in_days'),
-    #             price=detail_data.get('price'),
-    #             offer_type=detail_data.get('offer_type'),
-    #         )
-
-    #         feature_objects = Feature.objects.filter(name__in=features_data)
-    #         if len(feature_objects) != len(features_data):
-    #             missing_features = set(features_data) - set(feature_objects.values_list('name', flat=True))
-    #             raise serializers.ValidationError(
-    #                 {"features": f"Ungültige Features gefunden: {', '.join(missing_features)}"}
-    #             )
-    #         offer_detail.features.set(feature_objects)
-    #         offer_detail.save()
-
-    #         offer.details.add(offer_detail)
-
-    #     return offer
 
 class FeaturesSerializer(serializers.ModelSerializer):
     class Meta:

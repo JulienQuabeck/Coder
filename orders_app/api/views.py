@@ -1,8 +1,8 @@
 from rest_framework import generics, filters
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from orders_app.models import Orders
-from orders_app.api.serializers import OrderGetSerializer, OrderPostSerializer
+from orders_app.models import Orders, OrderDetail
+from orders_app.api.serializers import OrderGetSerializer, OrderPostSerializer, OrderCreateUpdateSerializer
 
 class PageSizePagination(PageNumberPagination):
     page_size = 6
@@ -19,3 +19,8 @@ class OrdersList(generics.ListCreateAPIView):
         if self.request.method in ['POST', 'PATCH']:
             return OrderPostSerializer
         return OrderGetSerializer
+
+class SingleOrder(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = OrderDetail.objects.all()
+    serializer_class = OrderCreateUpdateSerializer
