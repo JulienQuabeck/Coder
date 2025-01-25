@@ -1,10 +1,13 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework import generics, filters
+from rest_framework.pagination import PageNumberPagination
+
 from user_auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
-from rest_framework import generics, filters
-from rest_framework.pagination import PageNumberPagination
+from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin
+
 from django.db.models import Min
 from django.db.models import F
 
@@ -13,14 +16,14 @@ class PageSizePagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
 class offersList(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny, IsBusinessUser]
     pagination_class = PageSizePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
     ordering = ['min_price']
 
-    queryset = Offer.objects.all()
+    queryset = Offer.objects.all().order_by('title')
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH']:
@@ -53,9 +56,12 @@ class FeaturesView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FeaturesSerializer
 
 class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
     queryset = Offer.objects.all()
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH']:
             return PostSingleOfferSerializer
         return GetSingleOfferSerializer
+    
