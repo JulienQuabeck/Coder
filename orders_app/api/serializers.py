@@ -3,7 +3,7 @@ from orders_app.models import OfferDetail, Orders, OrderDetail
 from user_auth_app.models import UserProfile
 
 class OrderGetSerializer(serializers.ModelSerializer):
-    customer_user = serializers.SerializerMethodField()
+    customer_user = serializers.IntegerField(source='customer_user.user.id', read_only=True)
     title = serializers.CharField(source='offer_detail_id.title', read_only=True)
     revisions = serializers.IntegerField(source='offer_detail_id.revisions', read_only=True)
     delivery_time_in_days = serializers.IntegerField(source='offer_detail_id.delivery_time_in_days', read_only=True)
@@ -17,18 +17,18 @@ class OrderGetSerializer(serializers.ModelSerializer):
             'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features','offer_type', 'status', 'created_at', 'updated_at'
         ]
 
-    def get_customer_user(self, obj):
+    # def get_customer_user(self, obj):
 
-        request_user = self.context.get('request').user
+    #     request_user = self.context.get('request').user
 
-        customer_user_profile = UserProfile.objects.get(user=request_user)
+    #     customer_user_profile = UserProfile.objects.get(user=request_user)
 
-        return customer_user_profile.user_id
+    #     return customer_user_profile.user_id
 
 class OrderPostSerializer(serializers.ModelSerializer):
 
     offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all(), write_only=True)
-    
+
     class Meta:
         model = Orders
         fields = ['offer_detail_id']
@@ -44,7 +44,7 @@ class OrderPostSerializer(serializers.ModelSerializer):
         request_user = self.context['request'].user
 
         try:
-            customer_user_profile = UserProfile.objects.get(user=request_user)
+            customer_user_profile = UserProfile.objects.get(user=request_user, type='customer')
 
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
