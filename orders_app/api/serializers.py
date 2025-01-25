@@ -27,18 +27,17 @@ class OrderGetSerializer(serializers.ModelSerializer):
 
 class OrderPostSerializer(serializers.ModelSerializer):
 
-    offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all(), write_only=True)  # Ich verwende PrimaryKeyRelatedField
-
+    offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all(), write_only=True)
+    
     class Meta:
         model = Orders
         fields = ['offer_detail_id']
 
     def create(self, validated_data):
-        offer_detail = validated_data.get('offer_detail_id')  # Das OfferDetail-Objekt wird direkt zugewiesen
+        offer_detail = validated_data.get('offer_detail_id')
 
-        # Hole das zugehörige Angebot für das OfferDetail
         try:
-            offer = offer_detail.offers.first()  # Hier wird das zugehörige Angebot gefunden
+            offer = offer_detail.offers.first()
         except AttributeError:
             raise serializers.ValidationError({"offer_id": "No associated Offer found for this OfferDetail."})
 
@@ -50,12 +49,11 @@ class OrderPostSerializer(serializers.ModelSerializer):
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
 
-        # Erstelle die Bestellung
         order = Orders.objects.create(
             customer_user=customer_user_profile,
-            business_user=offer.user.user.id,  # Geschäftskonto-ID
-            offer_detail_id=offer_detail,  # Hier übergebe ich das vollständige OfferDetail-Objekt
-            status='in_progress',  # Status setzen
+            business_user=offer.user.user.id,
+            offer_detail_id=offer_detail,
+            status='in_progress',
         )
 
         return order
@@ -73,7 +71,12 @@ class OrderCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderDetail
         fields = [
-            'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features','offer_type', 'status', 'created_at', 'updated_at'
+            'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features',
+            'offer_type', 'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features',
+            'offer_type', 'created_at', 'updated_at'
         ]
 
     def get_customer_user(self, obj):
