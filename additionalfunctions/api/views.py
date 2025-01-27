@@ -34,8 +34,13 @@ class CompletedOrderCountList(generics.ListCreateAPIView):
         return Response({"order_count":order_count}, status=status.HTTP_200_OK)
 
 class BaseInfo(generics.ListCreateAPIView):
-    # queryset = Count.objects.all()
-    # serializer_class = OrderCountSerializer
     pass
+    # def get(self, request):
+    #     try:
+    #         business_user = UserProfile.objects.filter(type='business').count()
+    #         return Response({"num:" : business_user}, status=status.HTTP_200_OK)
+    #     except UserProfile.DoesNotExist:
+    #         return Response({"error": "Business user not found."}, status=status.HTTP_200_OK)
+
 
 
