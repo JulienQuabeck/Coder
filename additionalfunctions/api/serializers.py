@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from orders_app.models import Orders
 # from models import OrderCount
 
 class UserNestedSerializer(serializers.ModelSerializer):
@@ -6,3 +7,8 @@ class UserNestedSerializer(serializers.ModelSerializer):
     #     model = OrderCount
     #     fields = ['user_id']
     pass
+
+class OrderInProgressCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id']

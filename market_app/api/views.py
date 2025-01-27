@@ -13,3 +13,4 @@ class baseInfo(APIView):
         queryset = BaseInfo.objects.all()
         serializer = baseInfoSerializer(queryset, many=True)
         return JsonResponse(serializer.data, safe=False)
+    

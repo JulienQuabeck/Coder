@@ -163,11 +163,9 @@ class PostSingleOfferSerializer(serializers.ModelSerializer):
             instance.image = validated_data.get('image', instance.image)
         instance.save()
 
-        # Bestehende OfferDetail-Objekte aktualisieren oder neue erstellen
         for detail_data in details_data:
-            detail_id = detail_data.get('id')  # Prüfe, ob das Detail bereits existiert
+            detail_id = detail_data.get('id')
             if detail_id:
-                # Existierendes OfferDetail aktualisieren
                 detail_instance = OfferDetail.objects.get(id=detail_id)
                 detail_instance.title = detail_data.get('title', detail_instance.title)
                 detail_instance.revisions = detail_data.get('revisions', detail_instance.revisions)

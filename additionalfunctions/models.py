@@ -1,4 +1,4 @@
 from django.db import models
 
 class OrderCount(models.Model):
-    pass
+    order_count = models.IntegerField(default=0)
