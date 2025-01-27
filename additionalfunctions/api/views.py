@@ -15,16 +15,23 @@ class OrderInProgressCountList(generics.ListCreateAPIView):
         try:
             business_user = UserProfile.objects.get(user_id = pk)
         except UserProfile.DoesNotExist:
-            return Response({"error": "Businesss user not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         
         order_count = Orders.objects.filter(business_user = pk, status='in_progress').count()
 
         return Response({"order_count": order_count}, status=status.HTTP_200_OK)
 
 class CompletedOrderCountList(generics.ListCreateAPIView):
-    # queryset = Count.objects.all()
-    # serializer_class = OrderCountSerializer
-    pass
+
+    def get(self, request, pk):
+        try:
+            business_user = UserProfile.objects.get(user_id = pk)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        order_count = Orders.objects.filter(business_user = pk, status='completed').count()
+
+        return Response({"order_count":order_count}, status=status.HTTP_200_OK)
 
 class BaseInfo(generics.ListCreateAPIView):
     # queryset = Count.objects.all()

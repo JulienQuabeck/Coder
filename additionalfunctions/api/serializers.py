@@ -12,3 +12,8 @@ class OrderInProgressCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         fields = ['id']
+
+class OrderCompletedCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id']
