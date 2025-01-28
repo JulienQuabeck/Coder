@@ -1,3 +1,4 @@
 from django.contrib import admin
+from additionalfunctions.models import RatingAndReview
 
-# Register your models here.
+admin.site.register(RatingAndReview)
