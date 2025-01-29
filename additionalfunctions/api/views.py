@@ -71,6 +71,6 @@ class BaseInfo(APIView):
         if average_rating is None:
             average_rating = 0
 
-        return Response({'review_count': review_count,'average_rating': average_rating, 'business_user': business_user_count, 'offers': offers_count})
+        return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count})
         
 
