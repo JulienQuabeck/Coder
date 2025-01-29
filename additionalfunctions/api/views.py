@@ -45,8 +45,7 @@ class ReviewsView(generics.ListCreateAPIView):
             business_user_id = self.request.data.get('business_user')
             djangoUser = UserProfile.objects.filter(user_id = business_user_id).first()
             if djangoUser:
-                django_user_id = djangoUser.id
-                self.request.data['business_user'] = django_user_id
+                self.request.data['business_user'] = djangoUser.id
             else:
                 print('Keinen Nutzer gefunden')
         elif self.request.method in ['GET']:
@@ -59,6 +58,7 @@ class ReviewsView(generics.ListCreateAPIView):
             else:
                 print('Keinen Nutzer gefunden')
         return RatingAndReviewsSerializer
+
 
 class BaseInfo(APIView):
 
