@@ -2,9 +2,13 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.db.models import Avg
+
 from user_auth_app.models import UserProfile
 
 from orders_app.models import Orders
+
+from offers_app.models import Offer
 
 from additionalfunctions.models import RatingAndReview
 from additionalfunctions.api.serializers import RatingAndReviewsSerializer
@@ -56,4 +60,17 @@ class ReviewsView(generics.ListCreateAPIView):
                 print('Keinen Nutzer gefunden')
         return RatingAndReviewsSerializer
 
+class BaseInfo(APIView):
+
+    def get(self, request, *args, **kwargs):
+        business_user_count = UserProfile.objects.filter(type='business').count()
+        offers_count = Offer.objects.all().count()
+        review_count = RatingAndReview.objects.all().count()
+        average_rating = RatingAndReview.objects.all().aggregate(Avg('rating'))['rating__avg']
+
+        if average_rating is None:
+            average_rating = 0
+
+        return Response({'review_count': review_count,'average_rating': average_rating, 'business_user': business_user_count, 'offers': offers_count})
         
+

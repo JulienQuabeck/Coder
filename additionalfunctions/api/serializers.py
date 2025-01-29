@@ -25,4 +25,3 @@ class RatingAndReviewsSerializer(serializers.ModelSerializer):
         model= RatingAndReview
         fields = ['business_user', 'rating', 'description']
 
-   # business_user ist im frontend 14 - muss aber 3 sein dann funktioniert es
