@@ -23,9 +23,6 @@ class OrderCompletedCountSerializer(serializers.ModelSerializer):
 class RatingAndReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model= RatingAndReview
-        fields = ['rating', 'description']
-        extra_kwargs = {
-            'business_user' : {'read_only' : True} # define the 'user' field as 'read-only'
-        }
+        fields = ['business_user', 'rating', 'description']
 
    # business_user ist im frontend 14 - muss aber 3 sein dann funktioniert es

@@ -35,17 +35,14 @@ class CompletedOrderCountList(generics.ListCreateAPIView):
 
 class ReviewsView(generics.ListCreateAPIView):
     queryset = RatingAndReview.objects.all()
-    serializer_class = RatingAndReviewsSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = RatingAndReviewsSerializer(data=request.data)
-        
-        print("Request data:", request.data)
-        
-        if serializer.is_valid():
-            serializer.save()
-            print("Serialized data:", serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print("Serializer validation failed:", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PATCH', 'GET']:
+            business_user_id = self.request.data.get('business_user')
+            djangoUser = UserProfile.objects.filter(user_id = business_user_id).first()
+            if djangoUser:
+                django_user_id = djangoUser.id
+                self.request.data['business_user'] = django_user_id
+            else:
+                print('Keinen Nutzer gefunden')
+        return RatingAndReviewsSerializer
