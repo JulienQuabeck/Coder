@@ -37,7 +37,7 @@ class ReviewsView(generics.ListCreateAPIView):
     queryset = RatingAndReview.objects.all()
 
     def get_serializer_class(self):
-        if self.request.method in ['POST', 'PATCH', 'GET']:
+        if self.request.method in ['POST', 'PATCH']:
             business_user_id = self.request.data.get('business_user')
             djangoUser = UserProfile.objects.filter(user_id = business_user_id).first()
             if djangoUser:
@@ -45,4 +45,15 @@ class ReviewsView(generics.ListCreateAPIView):
                 self.request.data['business_user'] = django_user_id
             else:
                 print('Keinen Nutzer gefunden')
+        elif self.request.method in ['GET']:
+            business_user_id = self.request.query_params.get('business_user_id')
+            djangoUser = UserProfile.objects.filter(user_id=business_user_id).first()
+            if djangoUser:
+                self.request.query_params._mutable = True
+                self.request.query_params['business_user'] = djangoUser.id
+                self.request.query_params._mutable = False
+            else:
+                print('Keinen Nutzer gefunden')
         return RatingAndReviewsSerializer
+
+        
