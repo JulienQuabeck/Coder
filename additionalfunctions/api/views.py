@@ -11,8 +11,8 @@ from orders_app.models import Orders
 from offers_app.models import Offer
 
 from additionalfunctions.models import RatingAndReview
-from additionalfunctions.api.serializers import RatingAndReviewsSerializer
-from additionalfunctions.api.permissions import IsCustomerUser
+from additionalfunctions.api.serializers import RatingAndReviewsSerializer, RatingAndReviewsSingleSerializer
+from additionalfunctions.api.permissions import IsCustomerUser, isOwnerOrAdmin
 
 class OrderInProgressCountList(generics.ListCreateAPIView):
     
@@ -45,7 +45,10 @@ class ReviewsView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'POST':
             return [permissions.IsAuthenticated(), IsCustomerUser()]
+        if self.request.method == 'PATCH' or 'DELETE':
+            return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated()]
+        
  
 
     def get_serializer_class(self):
@@ -65,6 +68,32 @@ class ReviewsView(generics.ListCreateAPIView):
 
         return RatingAndReviewsSerializer
 
+class ReviewSingleView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = RatingAndReview.objects.all()
+    serializer_class = RatingAndReviewsSingleSerializer  
+
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'DELETE']:
+            return [isOwnerOrAdmin()]
+        return [permissions.IsAuthenticated()]
+        
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH']:
+            business_user_id = self.request.data.get('business_user')
+            djangoUser = UserProfile.objects.filter(user_id=business_user_id).first()
+
+            if djangoUser:
+                self.request.data['business_user'] = djangoUser.id
+            else:
+                print('Keinen Nutzer gefunden')
+
+            if self.request.user.is_authenticated:
+                self.request.data['reviewer'] = self.request.user.id
+            else:
+                print('Benutzer nicht authentifiziert')
+
+        return RatingAndReviewsSerializer
+    
 class BaseInfo(APIView):
 
     def get(self, request, *args, **kwargs):
