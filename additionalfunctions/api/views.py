@@ -3,10 +3,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django.db.models import Avg
+from django.http import JsonResponse
 
 from user_auth_app.models import UserProfile
 
-from orders_app.models import Orders
+from orders_app.models import Orders, OrderDetail
 
 from offers_app.models import Offer
 
@@ -107,3 +108,10 @@ class BaseInfo(APIView):
 
         return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count})
         
+class CompletedOrdersCounter(APIView):
+
+    def get(self, request):
+        completed_order_count = OrderDetail.objects.filter(status='completed').count()
+        return JsonResponse({"completed_order_count": completed_order_count})
+    
+    

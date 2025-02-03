@@ -1,5 +1,5 @@
 from django.urls import path
-from additionalfunctions.api.views import OrderInProgressCountList, CompletedOrderCountList, ReviewsView, ReviewSingleView, BaseInfo
+from additionalfunctions.api.views import OrderInProgressCountList, CompletedOrderCountList, ReviewsView, ReviewSingleView, BaseInfo, CompletedOrdersCounter
 
 urlpatterns = [
    path('order-count/<int:pk>/', OrderInProgressCountList.as_view(), name='order-count'),
@@ -7,4 +7,5 @@ urlpatterns = [
    path('reviews/', ReviewsView.as_view(), name='reviews'),
    path('reviews/<int:pk>/', ReviewSingleView.as_view(), name='single-review'),
    path('base-info/', BaseInfo.as_view(), name='base-info'),
+   path('completed-order-count/<int:pk>/', CompletedOrdersCounter.as_view(), name='Offer-Complete-Count')
 ]
