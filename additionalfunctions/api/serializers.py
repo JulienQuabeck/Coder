@@ -23,7 +23,7 @@ class OrderCompletedCountSerializer(serializers.ModelSerializer):
 class RatingAndReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model= RatingAndReview
-        fields = ['business_user','reviewer', 'rating', 'description', 'created_at', 'updated_at']
+        fields = ['id', 'business_user','reviewer', 'rating', 'description', 'created_at', 'updated_at']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -42,8 +42,8 @@ class RatingAndReviewsSerializer(serializers.ModelSerializer):
 class RatingAndReviewsSingleSerializer(serializers.ModelSerializer):
     class Meta:
         model= RatingAndReview
-        fields = ['business_user','reviewer', 'rating', 'description', 'created_at', 'updated_at']
-        read_only_fields = ['business_user', 'reviewer', 'created_at', 'updated_at']
+        fields = ['id', 'business_user','reviewer', 'rating', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'business_user', 'reviewer', 'created_at', 'updated_at']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
