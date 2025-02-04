@@ -50,12 +50,10 @@ class ReviewsView(generics.ListCreateAPIView):
         reviewer_id = self.request.query_params.get("reviewer_id")
 
         if business_user_id:
-            queryset = queryset.filter(business_user__user__id=business_user_id)  
-            # business_user ist UserProfile, user__id ist Django-User-ID
+            queryset = queryset.filter(business_user__user__id=business_user_id)
 
         if reviewer_id:
             queryset = queryset.filter(reviewer=reviewer_id)  
-            # reviewer ist eine Integer-ID, daher kein ForeignKey-Filter nötig
 
         return queryset
 
