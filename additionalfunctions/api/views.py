@@ -43,6 +43,22 @@ class ReviewsView(generics.ListCreateAPIView):
     queryset = RatingAndReview.objects.all()
     serializer_class = RatingAndReviewsSerializer  
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        business_user_id = self.request.query_params.get("business_user_id")
+        reviewer_id = self.request.query_params.get("reviewer_id")
+
+        if business_user_id:
+            queryset = queryset.filter(business_user__user__id=business_user_id)  
+            # business_user ist UserProfile, user__id ist Django-User-ID
+
+        if reviewer_id:
+            queryset = queryset.filter(reviewer=reviewer_id)  
+            # reviewer ist eine Integer-ID, daher kein ForeignKey-Filter nötig
+
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'POST':
             return [permissions.IsAuthenticated(), IsCustomerUser()]
@@ -50,7 +66,6 @@ class ReviewsView(generics.ListCreateAPIView):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated()]
         
- 
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH']:

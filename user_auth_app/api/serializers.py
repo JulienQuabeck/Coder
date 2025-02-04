@@ -116,7 +116,7 @@ class BusinessUserListSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ['user', 'file', 'location', 'tel', 'description', 'working_hours', 'type']
+        fields = ['id','user', 'file', 'location', 'tel', 'description', 'working_hours', 'type']
 
     def get_file(self, obj):
         if obj.file:

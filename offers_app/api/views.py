@@ -32,6 +32,11 @@ class offersList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        creator_id = self.request.query_params.get("creator_id")
+        if creator_id:
+            queryset = queryset.filter(user__user__id=creator_id)
+
         queryset = queryset.annotate(min_price=Min('details__price'))
         queryset = queryset.annotate(min_delivery_time=Min('details__delivery_time_in_days'))
         queryset = queryset.annotate(
