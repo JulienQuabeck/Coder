@@ -44,7 +44,20 @@ class offersList(generics.ListCreateAPIView):
             user_last_name=F('user__user__last_name'),
             user_username=F('user__user__username'),
         )
+
+        delivery_time = self.request.query_params.get("max_delivery_time")
+        if delivery_time:
+            try:
+                delivery_time = int(delivery_time)
+            except ValueError:
+                delivery_time = None
+            if delivery_time is not None:
+                queryset = queryset.filter(min_delivery_time__lte=delivery_time)
+
         return queryset
+    
+    
+
 
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
