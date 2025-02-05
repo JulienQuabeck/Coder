@@ -53,14 +53,18 @@ class ReviewsView(generics.ListCreateAPIView):
             queryset = queryset.filter(business_user__user__id=business_user_id)
 
         if reviewer_id:
-            queryset = queryset.filter(reviewer=reviewer_id)  
+            queryset = queryset.filter(reviewer=reviewer_id) 
+
+        ordering = self.request.query_params.get('ordering', None)
+        if ordering in ['rating', '-rating', 'updated_at', '-updated_at']:
+            queryset = queryset.order_by(ordering) 
 
         return queryset
 
     def get_permissions(self):
         if self.request.method == 'POST':
             return [permissions.IsAuthenticated(), IsCustomerUser()]
-        if self.request.method == 'PATCH' or 'DELETE':
+        if self.request.method == ['PATCH', 'DELETE']:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated()]
         
@@ -118,6 +122,8 @@ class BaseInfo(APIView):
 
         if average_rating is None:
             average_rating = 0
+        else:
+            average_rating = round(average_rating, 2)
 
         return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count})
         
