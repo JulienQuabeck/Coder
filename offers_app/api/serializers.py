@@ -1,8 +1,5 @@
 from offers_app.models import Offer, OfferDetail, Feature, UserProfile
 from rest_framework import serializers
-from user_auth_app.api.serializers import UserProfileSerializer
-from django.contrib.auth.models import User
-from django.db import models
 
 class UserNestedSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +25,6 @@ class OfferDetailMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'url']
 
 class OfferDetailMaximalSerializer(serializers.ModelSerializer):
-    # features = serializers.SlugRelatedField(slug_field='name', queryset=Feature.objects.all(), many=True)
     features = serializers.JSONField()
     class Meta:
         model = OfferDetail
@@ -153,10 +149,8 @@ class PostSingleOfferSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
-        # `details` aus den validierten Daten extrahieren
         details_data = validated_data.pop('details', [])
         
-        # Update der Haupt-Instanz (`Offer`)
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
         if 'image' in validated_data:

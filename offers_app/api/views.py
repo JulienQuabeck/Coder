@@ -1,9 +1,7 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework import generics, filters
 from rest_framework.pagination import PageNumberPagination
 
-from user_auth_app.models import UserProfile
 from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
 from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin

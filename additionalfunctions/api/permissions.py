@@ -1,4 +1,3 @@
-from rest_framework import permissions
 from user_auth_app.models import UserProfile
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 

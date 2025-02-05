@@ -17,14 +17,6 @@ class OrderGetSerializer(serializers.ModelSerializer):
             'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features','offer_type', 'status', 'created_at', 'updated_at'
         ]
 
-    # def get_customer_user(self, obj):
-
-    #     request_user = self.context.get('request').user
-
-    #     customer_user_profile = UserProfile.objects.get(user=request_user)
-
-    #     return customer_user_profile.user_id
-
 class OrderPostSerializer(serializers.ModelSerializer):
 
     offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all(), write_only=True)
