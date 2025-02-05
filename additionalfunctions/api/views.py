@@ -125,12 +125,11 @@ class BaseInfo(APIView):
         else:
             average_rating = round(average_rating, 2)
 
-        return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count})
+        return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count}, status=status.HTTP_200_OK)
         
 class CompletedOrdersCounter(APIView):
 
     def get(self, request):
         completed_order_count = OrderDetail.objects.filter(status='completed').count()
-        return JsonResponse({"completed_order_count": completed_order_count})
-    
+        return JsonResponse({"completed_order_count": completed_order_count}, status=status.HTTP_200_OK)
     

@@ -18,15 +18,10 @@ class isOwnerOrAdmin(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         elif request.method == "DELETE":
-            return bool(request.user and request.user.is_superuser)
+            return bool(request.user or request.user.is_superuser)
         else:
-            print(f"auth. user: {request.user.userprofile.id}")
-            print(f"eingeloggter User des Objekts: {request.user.id}")
-
             try:
                 current_user = UserProfile.objects.filter(id = request.user.userprofile.id)
             except UserProfile.DoesNotExist:
                 return False
-            print(f"current_user: {current_user}")
-            print(f"Objekt-reviewer: {obj.reviewer}")
         return bool (request.user and request.user.id == obj.reviewer)

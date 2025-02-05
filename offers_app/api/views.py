@@ -1,6 +1,7 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import generics, filters
+from rest_framework import generics, filters, status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
@@ -54,12 +55,8 @@ class offersList(generics.ListCreateAPIView):
 
         return queryset
     
-    
-
-
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
-
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
 
@@ -81,3 +78,14 @@ class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
             return PostSingleOfferSerializer
         return GetSingleOfferSerializer
     
+    def post(self, request, *args, **kwargs):
+        return Response(
+            {"message": "created"}, 
+            status=status.HTTP_201_CREATED
+        )
+    
+    def patch(self, request, *args, **kwargs):
+        return Response(
+            {"message": "updated"}, 
+            status=status.HTTP_200_OK
+        )
