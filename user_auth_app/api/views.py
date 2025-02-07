@@ -1,15 +1,14 @@
-from rest_framework import generics
+from rest_framework import generics, status, serializers
 from rest_framework.views import APIView
 from .serializers import RegistrationSerializer, UserProfileSerializer, FileUploadSerializer, UserDetailSerializer, BusinessUserListSerializer, CustomerUserListSerializer
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+
+from django.contrib.auth.models import User
+
 from user_auth_app.models import UserProfile, FileUpload
-from rest_framework import serializers
 
 
 class RegistraionView(APIView):

@@ -37,7 +37,7 @@ class CompletedOrderCountList(generics.ListCreateAPIView):
         
         order_count = Orders.objects.filter(business_user = pk, status='completed').count()
 
-        return Response({"order_count":order_count}, status=status.HTTP_200_OK)
+        return Response({"completed_order_count":order_count}, status=status.HTTP_200_OK)
 
 class ReviewsView(generics.ListCreateAPIView):
     queryset = RatingAndReview.objects.all()

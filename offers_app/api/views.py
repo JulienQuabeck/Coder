@@ -7,7 +7,8 @@ from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
 from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin
 
-from django.db.models import Min
+from django.db.models import Min, FloatField, DecimalField
+from django.db.models.functions import Cast
 from django.db.models import F
 
 class PageSizePagination(PageNumberPagination):
@@ -36,7 +37,8 @@ class offersList(generics.ListCreateAPIView):
         if creator_id:
             queryset = queryset.filter(user__user__id=creator_id)
 
-        queryset = queryset.annotate(min_price=Min('details__price'))
+        # queryset = queryset.annotate(min_price=Cast(Min('details__price'), FloatField()))
+        queryset = queryset.annotate(min_price=Min('details__price', output_field=DecimalField(max_digits=10, decimal_places=2)))
         queryset = queryset.annotate(min_delivery_time=Min('details__delivery_time_in_days'))
         queryset = queryset.annotate(
             user_first_name=F('user__user__first_name'),

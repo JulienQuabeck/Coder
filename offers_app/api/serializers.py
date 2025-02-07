@@ -8,7 +8,7 @@ class UserNestedSerializer(serializers.ModelSerializer):
 
 class OfferDetailSerializer(serializers.ModelSerializer):
     features = serializers.JSONField()
-    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = OfferDetail
@@ -28,7 +28,7 @@ class OfferDetailMaximalSerializer(serializers.ModelSerializer):
     features = serializers.JSONField()
     class Meta:
         model = OfferDetail
-        fields = ['title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
 
     def get_features(self, obj):
         return [feature.name for feature in obj.features.all()]
@@ -49,7 +49,7 @@ class OfferSerializer(serializers.ModelSerializer):
     user_details = serializers.SerializerMethodField()
     details = OfferDetailMinimalSerializer(many=True)
     image = serializers.SerializerMethodField()
-    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    min_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, coerce_to_string=False)
     min_delivery_time = serializers.IntegerField(required=False)
 
     class Meta:
