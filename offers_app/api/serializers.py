@@ -1,5 +1,6 @@
 from offers_app.models import Offer, OfferDetail, Feature, UserProfile
 from rest_framework import serializers
+from django.db.models import Min
 
 class UserNestedSerializer(serializers.ModelSerializer):
     class Meta:
@@ -126,16 +127,30 @@ class GetSingleOfferSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     details = OfferDetailMaximalWithIdSerializer(many=True)
     image = serializers.FileField(required=False, allow_null=True)
+    min_price = serializers.SerializerMethodField()
+    min_delivery_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
         fields = [
             'id', 'user', 'title', 'image', 'description',
-            'created_at', 'updated_at', 'details',
+            'created_at', 'updated_at', 'details', 'min_price', 'min_delivery_time',
         ]
 
     def get_user(self, obj):
         return obj.user.user_id
+    
+    def get_min_price(self, obj):
+        if obj.details.exists():
+            min_price = obj.details.aggregate(Min('price'))['price__min']
+            return min_price
+        return None
+
+    def get_min_delivery_time(self, obj):
+        if obj.details.exists():
+            min_delivery_time = obj.details.aggregate(Min('delivery_time_in_days'))['delivery_time_in_days__min']
+            return min_delivery_time
+        return None 
     
 class PostSingleOfferSerializer(serializers.ModelSerializer):
     details = OfferDetailMaximalSerializer(many=True)
