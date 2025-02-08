@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
-from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin
+from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin, IsBusinessOwnerOrReadOnly
 
 from django.db.models import Min, FloatField, DecimalField
 from django.db.models.functions import Cast
@@ -17,7 +17,7 @@ class PageSizePagination(PageNumberPagination):
 
 class offersList(generics.ListCreateAPIView):
     permission_classes = [AllowAny, IsBusinessUser]
-    pagination_class = PageSizePagination
+    #pagination_class = PageSizePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
@@ -58,7 +58,7 @@ class offersList(generics.ListCreateAPIView):
         return queryset
     
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBusinessOwnerOrReadOnly]
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
 
@@ -87,7 +87,22 @@ class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
         )
     
     def patch(self, request, *args, **kwargs):
-        return Response(
-            {"message": "updated"}, 
-            status=status.HTTP_200_OK
-        )
+        obj = self.get_object()  
+        self.check_object_permissions(request, obj)  
+
+        serializer = self.get_serializer(obj, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        old_data = {field: getattr(obj, field) for field in serializer.validated_data}
+
+        serializer.save() 
+
+        updated_data = {
+            field: serializer.validated_data[field]
+            for field in serializer.validated_data
+            if old_data.get(field) != serializer.validated_data[field]
+        }
+
+        updated_data["id"] = obj.id
+
+        return Response(updated_data, status=status.HTTP_200_OK)
