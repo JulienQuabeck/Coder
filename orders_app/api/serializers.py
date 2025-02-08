@@ -78,3 +78,13 @@ class OrderCreateUpdateSerializer(serializers.ModelSerializer):
         customer_user_profile = UserProfile.objects.get(user=request_user)
 
         return customer_user_profile.user_id
+    
+class OrderInProgressCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id']
+
+class OrderCompletedCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id']

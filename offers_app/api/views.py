@@ -7,8 +7,7 @@ from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
 from offers_app.api.permissions import IsBusinessUser, IsOwnerOrAdmin, IsBusinessOwnerOrReadOnly
 
-from django.db.models import Min, FloatField, DecimalField
-from django.db.models.functions import Cast
+from django.db.models import Min, DecimalField
 from django.db.models import F
 
 class PageSizePagination(PageNumberPagination):

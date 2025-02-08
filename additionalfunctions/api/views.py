@@ -1,44 +1,66 @@
-from rest_framework import generics, status, permissions
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics, permissions
+# status
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
 
-from django.db.models import Avg
-from django.http import JsonResponse
+# from django.db.models import Avg
+# from django.http import JsonResponse
 
 from user_auth_app.models import UserProfile
 
-from orders_app.models import Orders, OrderDetail
+# from orders_app.models import Orders, OrderDetail
 
-from offers_app.models import Offer
+# from offers_app.models import Offer
 
 from additionalfunctions.models import RatingAndReview
 from additionalfunctions.api.serializers import RatingAndReviewsSerializer, RatingAndReviewsSingleSerializer
 from additionalfunctions.api.permissions import IsCustomerUser, isOwnerOrAdmin
 
-class OrderInProgressCountList(generics.ListCreateAPIView):
+# class OrderInProgressCountList(generics.ListCreateAPIView):
     
-    def get(self, request, pk):
-        try:
-            business_user = UserProfile.objects.get(user_id = pk)
-        except UserProfile.DoesNotExist:
-            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+#     def get(self, request, pk):
+#         try:
+#             business_user = UserProfile.objects.get(user_id = pk)
+#         except UserProfile.DoesNotExist:
+#             return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        order_count = Orders.objects.filter(business_user = pk, status='in_progress').count()
+#         order_count = Orders.objects.filter(business_user = pk, status='in_progress').count()
 
-        return Response({"order_count": order_count}, status=status.HTTP_200_OK)
+#         return Response({"order_count": order_count}, status=status.HTTP_200_OK)
 
-class CompletedOrderCountList(generics.ListCreateAPIView):
+# class CompletedOrderCountList(generics.ListCreateAPIView):
 
-    def get(self, request, pk):
-        try:
-            business_user = UserProfile.objects.get(user_id = pk)
-        except UserProfile.DoesNotExist:
-            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+#     def get(self, request, pk):
+#         try:
+#             business_user = UserProfile.objects.get(user_id = pk)
+#         except UserProfile.DoesNotExist:
+#             return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        order_count = Orders.objects.filter(business_user = pk, status='completed').count()
+#         order_count = Orders.objects.filter(business_user = pk, status='completed').count()
 
-        return Response({"completed_order_count":order_count}, status=status.HTTP_200_OK)
+#         return Response({"completed_order_count":order_count}, status=status.HTTP_200_OK)
 
+# class BaseInfo(APIView):
+
+#     def get(self, request, *args, **kwargs):
+#         business_user_count = UserProfile.objects.filter(type='business').count()
+#         offers_count = Offer.objects.all().count()
+#         review_count = RatingAndReview.objects.all().count()
+#         average_rating = RatingAndReview.objects.all().aggregate(Avg('rating'))['rating__avg']
+
+#         if average_rating is None:
+#             average_rating = 0
+#         else:
+#             average_rating = round(average_rating, 2)
+
+#         return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count}, status=status.HTTP_200_OK)
+        
+# class CompletedOrdersCounter(APIView):
+
+#     def get(self, request):
+#         completed_order_count = OrderDetail.objects.filter(status='completed').count()
+#         return JsonResponse({"completed_order_count": completed_order_count}, status=status.HTTP_200_OK)
+    
 class ReviewsView(generics.ListCreateAPIView):
     queryset = RatingAndReview.objects.all()
     serializer_class = RatingAndReviewsSerializer  
@@ -111,25 +133,4 @@ class ReviewSingleView(generics.RetrieveUpdateDestroyAPIView):
                 print('Benutzer nicht authentifiziert')
 
         return RatingAndReviewsSerializer
-    
-class BaseInfo(APIView):
-
-    def get(self, request, *args, **kwargs):
-        business_user_count = UserProfile.objects.filter(type='business').count()
-        offers_count = Offer.objects.all().count()
-        review_count = RatingAndReview.objects.all().count()
-        average_rating = RatingAndReview.objects.all().aggregate(Avg('rating'))['rating__avg']
-
-        if average_rating is None:
-            average_rating = 0
-        else:
-            average_rating = round(average_rating, 2)
-
-        return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count}, status=status.HTTP_200_OK)
-        
-class CompletedOrdersCounter(APIView):
-
-    def get(self, request):
-        completed_order_count = OrderDetail.objects.filter(status='completed').count()
-        return JsonResponse({"completed_order_count": completed_order_count}, status=status.HTTP_200_OK)
     

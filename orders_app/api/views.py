@@ -3,11 +3,20 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 
-from orders_app.models import Orders
+from user_auth_app.models import UserProfile
+
+from offers_app.models import Offer
+
+from additionalfunctions.models import RatingAndReview
+
+from orders_app.models import Orders, OrderDetail
 from orders_app.api.serializers import OrderGetSerializer, OrderPostSerializer, OrderCreateUpdateSerializer
 
+from django.http import JsonResponse
 from django.db import models
+from django.db.models import Avg
 
 class PageSizePagination(PageNumberPagination):
     page_size = 6
@@ -54,3 +63,52 @@ class SingleOrder(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, *args, **kwargs):
         return Response({"detail": "PUT method is not allowed. Use PATCH to update the status."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+
+class OrderInProgressCountList(generics.ListCreateAPIView):
+    
+    def get(self, request, pk):
+        try:
+            business_user = UserProfile.objects.get(user_id = pk)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        order_count = Orders.objects.filter(business_user = pk, status='in_progress').count()
+
+        return Response({"order_count": order_count}, status=status.HTTP_200_OK)
+
+class CompletedOrderCountList(generics.ListCreateAPIView):
+
+    def get(self, request, pk):
+        try:
+            business_user = UserProfile.objects.get(user_id = pk)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        order_count = Orders.objects.filter(business_user = pk, status='completed').count()
+
+        return Response({"completed_order_count":order_count}, status=status.HTTP_200_OK)
+
+class BaseInfo(APIView):
+
+    def get(self, request, *args, **kwargs):
+        business_user_count = UserProfile.objects.filter(type='business').count()
+        offers_count = Offer.objects.all().count()
+        review_count = RatingAndReview.objects.all().count()
+        average_rating = RatingAndReview.objects.all().aggregate(Avg('rating'))['rating__avg']
+
+        if average_rating is None:
+            average_rating = 0
+        else:
+            average_rating = round(average_rating, 2)
+
+        return Response({'review_count': review_count,'average_rating': average_rating, 'business_profile_count': business_user_count, 'offer_count': offers_count}, status=status.HTTP_200_OK)
+        
+class CompletedOrdersCounter(APIView):
+
+    def get(self, request):
+        completed_order_count = OrderDetail.objects.filter(status='completed').count()
+        return JsonResponse({"completed_order_count": completed_order_count}, status=status.HTTP_200_OK)
+     
