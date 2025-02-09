@@ -3,16 +3,6 @@ from orders_app.models import Orders
 from additionalfunctions.models import RatingAndReview
 from user_auth_app.models import UserProfile
 
-# class OrderInProgressCountSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Orders
-#         fields = ['id']
-
-# class OrderCompletedCountSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Orders
-#         fields = ['id']
-
 class RatingAndReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         model= RatingAndReview
