@@ -82,17 +82,7 @@ class RetrievUpdateDestroyDetailUser(generics.RetrieveUpdateDestroyAPIView):
             return user_profile
         except UserProfile.DoesNotExist:
             raise serializers.ValidationError({"detail": "UserProfile not found"})
-        
-    def check_permissions(self, request, instance):
-
-        logged_in_user = request.user.userprofile
-
-        if logged_in_user.type != instance.type:
-            return Response(
-                {"detail": "Du darfst keine Profile eines anderen Typs ändern oder löschen!"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        return None     
+         
 
     def retrieve(self, request, *args, **kwargs):
         user_profile = self.get_object()
@@ -102,9 +92,12 @@ class RetrievUpdateDestroyDetailUser(generics.RetrieveUpdateDestroyAPIView):
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        permission_response = self.check_permissions(request, instance)
-        if permission_response:
-            return permission_response
+        logged_in_user = request.user.userprofile
+        if logged_in_user.type != instance.type:
+            return Response(
+                {"detail": "Du darfst keine Profile eines anderen Typs ändern oder löschen!"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
