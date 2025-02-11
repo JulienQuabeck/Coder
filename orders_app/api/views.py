@@ -24,7 +24,7 @@ class PageSizePagination(PageNumberPagination):
 
 class OrdersList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    pagination_class = PageSizePagination
+    #pagination_class = PageSizePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
 
     queryset = Orders.objects.all().order_by('id')

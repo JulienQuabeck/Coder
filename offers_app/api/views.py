@@ -16,7 +16,7 @@ class PageSizePagination(PageNumberPagination):
 
 class offersList(generics.ListCreateAPIView):
     permission_classes = [AllowAny, IsBusinessUser]
-    #pagination_class = PageSizePagination
+    pagination_class = PageSizePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
