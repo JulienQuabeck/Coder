@@ -68,8 +68,13 @@ class SingleOrder(generics.RetrieveUpdateDestroyAPIView):
 
 
 class OrderInProgressCountList(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, pk):
+
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+        
         try:
             business_user = UserProfile.objects.get(user_id = pk)
         except UserProfile.DoesNotExist:
