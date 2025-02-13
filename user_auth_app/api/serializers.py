@@ -91,9 +91,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     username = serializers.CharField(source='user.username', read_only=True)
-    first_name = serializers.CharField(source='user.first_name', read_only=True)
-    last_name = serializers.CharField(source='user.last_name', read_only=True)
-    email = serializers.CharField(source='user.email', read_only=True)
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.CharField(source='user.email')
     file = serializers.SerializerMethodField()
     authentication_classes = [TokenAuthentication] 
     
@@ -105,6 +105,21 @@ class UserDetailSerializer(serializers.ModelSerializer):
         if obj.file:
             return settings.MEDIA_URL + obj.file.name
         return None
+    
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+
+        if 'email' in user_data:
+            user.email = user_data['email']
+        if 'first_name' in user_data:
+            user.first_name = user_data['first_name']
+        if 'last_name' in user_data:
+            user.last_name = user_data['last_name']
+        
+        user.save()
+
+        return super().update(instance, validated_data)
 
 class UserNestedSerializer(serializers.ModelSerializer):
     class Meta:

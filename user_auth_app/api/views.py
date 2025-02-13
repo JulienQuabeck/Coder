@@ -101,15 +101,6 @@ class RetrievUpdateDestroyDetailUser(generics.RetrieveUpdateDestroyAPIView):
 
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            user = instance.user
-            if 'first_name' in request.data:
-                user.first_name = request.data['first_name']
-            if 'last_name' in request.data:
-                user.last_name = request.data['last_name']
-            if 'file' in request.data:
-                instance.file = request.data['file']
-            user.save()
-            
             serializer.save()
             return Response(serializer.data, status=200)
         return Response(serializer.errors, status=400)
