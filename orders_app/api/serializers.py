@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from orders_app.models import OfferDetail, Orders, OrderDetail
 from user_auth_app.models import UserProfile
+from rest_framework.response import Response
+from rest_framework import status
 
 class OrderGetSerializer(serializers.ModelSerializer):
     customer_user = serializers.IntegerField(source='customer_user.user.id', read_only=True)
@@ -25,30 +27,42 @@ class OrderPostSerializer(serializers.ModelSerializer):
         model = Orders
         fields = ['offer_detail_id']
 
-    def create(self, validated_data):
+    def create(self, request, validated_data):
         offer_detail = validated_data.get('offer_detail_id')
+        serializer = self.get_serializer(data=request.data)
 
-        try:
-            offer = offer_detail.offers.first()
-        except AttributeError:
-            raise serializers.ValidationError({"offer_id": "No associated Offer found for this OfferDetail."})
 
-        request_user = self.context['request'].user
+        if serializer.is_valid():
+            order = serializer.save()  # Speichert das Order-Objekt
+        
+        # Verwende den GET-Serializer für die Rückgabe
+            response_serializer = OrderGetSerializer(order, context={'request': request})
+        
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            customer_user_profile = UserProfile.objects.get(user=request_user, type='customer')
+        # try:
+        #     offer = offer_detail.offers.first()
+        # except AttributeError:
+        #     raise serializers.ValidationError({"offer_id": "No associated Offer found for this OfferDetail."})
 
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
+        # request_user = self.context['request'].user
 
-        order = Orders.objects.create(
-            customer_user=customer_user_profile,
-            business_user=offer.user.user.id,
-            offer_detail_id=offer_detail,
-            status='in_progress',
-        )
+        # try:
+        #     customer_user_profile = UserProfile.objects.get(user=request_user, type='customer')
 
-        return order
+        # except UserProfile.DoesNotExist:
+        #     raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
+
+        # order = Orders.objects.create(
+        #     customer_user=customer_user_profile,
+        #     business_user=offer.user.user.id,
+        #     offer_detail_id=offer_detail,
+        #     status='in_progress',
+        # )
+
+        # return order
     
 class OrderCreateUpdateSerializer(serializers.ModelSerializer):
     
