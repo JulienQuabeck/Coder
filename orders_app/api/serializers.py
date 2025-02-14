@@ -3,6 +3,7 @@ from orders_app.models import OfferDetail, Orders, OrderDetail
 from user_auth_app.models import UserProfile
 from rest_framework.response import Response
 from rest_framework import status
+from decimal import Decimal
 
 class OrderGetSerializer(serializers.ModelSerializer):
     customer_user = serializers.IntegerField(source='customer_user.user.id', read_only=True)
@@ -19,50 +20,43 @@ class OrderGetSerializer(serializers.ModelSerializer):
             'id', 'customer_user', 'business_user','title','revisions','delivery_time_in_days','price','features','offer_type', 'status', 'created_at', 'updated_at'
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['price'] = Decimal(data['price']).quantize(Decimal('0.00'))  # Erzwingt zwei Dezimalstellen
+        return data
+
 class OrderPostSerializer(serializers.ModelSerializer):
 
-    offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all(), write_only=True)
+    offer_detail_id = serializers.PrimaryKeyRelatedField(queryset=OfferDetail.objects.all())
 
     class Meta:
         model = Orders
         fields = ['offer_detail_id']
 
-    def create(self, request, validated_data):
+    def create(self, validated_data):
         offer_detail = validated_data.get('offer_detail_id')
-        serializer = self.get_serializer(data=request.data)
-
-
-        if serializer.is_valid():
-            order = serializer.save()  # Speichert das Order-Objekt
         
-        # Verwende den GET-Serializer für die Rückgabe
-            response_serializer = OrderGetSerializer(order, context={'request': request})
-        
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-    
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            offer = offer_detail.offers.first()
+        except AttributeError:
+            raise serializers.ValidationError({"offer_id": "No associated Offer found for this OfferDetail."})
 
-        # try:
-        #     offer = offer_detail.offers.first()
-        # except AttributeError:
-        #     raise serializers.ValidationError({"offer_id": "No associated Offer found for this OfferDetail."})
+        request_user = self.context['request'].user
 
-        # request_user = self.context['request'].user
+        try:
+            customer_user_profile = UserProfile.objects.get(user=request_user, type='customer')
 
-        # try:
-        #     customer_user_profile = UserProfile.objects.get(user=request_user, type='customer')
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
 
-        # except UserProfile.DoesNotExist:
-        #     raise serializers.ValidationError({"customer_user": "No UserProfile found for the current user."})
+        order = Orders.objects.create(
+            customer_user=customer_user_profile,
+            business_user=offer.user.user.id,
+            offer_detail_id=offer_detail,
+            status='in_progress',
+        )
 
-        # order = Orders.objects.create(
-        #     customer_user=customer_user_profile,
-        #     business_user=offer.user.user.id,
-        #     offer_detail_id=offer_detail,
-        #     status='in_progress',
-        # )
-
-        # return order
+        return order
     
 class OrderCreateUpdateSerializer(serializers.ModelSerializer):
     

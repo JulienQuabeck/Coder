@@ -44,11 +44,14 @@ class OrdersList(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        
+
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+            order = serializer.save()  # Hier wird die `create`-Methode vom Serializer aufgerufen
+
+            # Jetzt die Response mit dem `OrderGetSerializer` zurückgeben
+            response_serializer = OrderGetSerializer(order, context={'request': request})
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class SingleOrder(generics.RetrieveUpdateDestroyAPIView):
