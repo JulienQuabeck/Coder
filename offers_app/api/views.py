@@ -84,7 +84,7 @@ class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
             {"message": "created"}, 
             status=status.HTTP_201_CREATED
         )
-    
+        
     def patch(self, request, *args, **kwargs):
         obj = self.get_object()  
         self.check_object_permissions(request, obj)  
@@ -97,11 +97,41 @@ class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save() 
 
         updated_data = {
-            field: serializer.validated_data[field]
-            for field in serializer.validated_data
-            if old_data.get(field) != serializer.validated_data[field]
+            "id": obj.id,
+            "title": obj.title, 
+            "details": []
         }
 
-        updated_data["id"] = obj.id
+        details_in_request = request.data.get('details', [])
+
+        if not details_in_request:
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        for detail_data in details_in_request:
+            detail_id = detail_data.get('id')
+            if detail_id:
+                try:
+                    detail_instance = OfferDetail.objects.get(id=detail_id)
+                except OfferDetail.DoesNotExist:
+                    continue 
+
+                detail_updated = False
+                detail_changes = {}
+
+                for field, value in detail_data.items():
+ 
+                    current_value = getattr(detail_instance, field)
+                    if current_value != value:
+                        detail_changes[field] = value
+                        detail_updated = True
+                    else:
+                        detail_changes[field] = current_value  
+
+                if detail_updated:
+                    detail_changes['id'] = detail_id 
+                    updated_data["details"].append(detail_changes)
+        
+        if not updated_data["details"]:
+            return Response(updated_data, status=status.HTTP_200_OK)
 
         return Response(updated_data, status=status.HTTP_200_OK)
