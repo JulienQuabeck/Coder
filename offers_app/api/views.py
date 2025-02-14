@@ -2,6 +2,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics, filters, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from offers_app.models import Offer, OfferDetail, Feature
 from offers_app.api.serializers import OfferSerializer, OfferDetailSerializer, FeaturesSerializer, OfferCreateUpdateSerializer, GetSingleOfferSerializer, PostSingleOfferSerializer
@@ -48,6 +49,8 @@ class offersList(generics.ListCreateAPIView):
         delivery_time = self.request.query_params.get("max_delivery_time")
         if delivery_time:
             try:
+                if not delivery_time.isdigit():
+                    raise ValidationError("max_delivery_time-Param must be a number.")
                 delivery_time = int(delivery_time)
             except ValueError:
                 delivery_time = None
