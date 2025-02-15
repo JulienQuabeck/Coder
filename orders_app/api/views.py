@@ -46,9 +46,8 @@ class OrdersList(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            order = serializer.save()  # Hier wird die `create`-Methode vom Serializer aufgerufen
+            order = serializer.save()
 
-            # Jetzt die Response mit dem `OrderGetSerializer` zurückgeben
             response_serializer = OrderGetSerializer(order, context={'request': request})
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
