@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.exceptions import NotAuthenticated
 
 from django.contrib.auth.models import User
 
@@ -76,6 +77,10 @@ class RetrievUpdateDestroyDetailUser(generics.RetrieveUpdateDestroyAPIView):
 
 
     def get_object(self):
+
+        if not self.request.user.is_authenticated:
+            raise NotAuthenticated({"detail": "Nicht authentifiziert."})
+
         user_id = self.kwargs.get('pk')
         try:
             user_profile = UserProfile.objects.get(user__id=user_id)
